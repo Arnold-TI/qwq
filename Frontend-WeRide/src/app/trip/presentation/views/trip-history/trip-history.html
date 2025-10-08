@@ -1,0 +1,24 @@
+<div class="trip-history-container">
+  <div class="header">
+    <button mat-icon-button class="back-btn" (click)="goBack()" aria-label="Volver">
+      <span style="font-size: 24px;">←</span>
+    </button>
+    <h2>Historial de Viajes</h2>
+  </div>
+  <div *ngFor="let trip of trips" class="trip-card">
+    <img [src]="trip.image" alt="Scooter" class="vehicle-img" />
+    <div class="trip-info">
+      <h3>Viaje ({{ trip.route }})</h3>
+      <p>Fecha y hora: {{ trip.date }}</p>
+      <p>Vehículo: {{ trip.vehicle }}</p>
+      <p>Duración del viaje: {{ trip.duration }}</p>
+      <p>Distancia recorrida: {{ trip.distance }}</p>
+      <p>Id del Viaje: {{ trip.id }}</p>
+    </div>
+    <div class="trip-actions">
+      <button (click)="printReceipt(trip)">Imprimir recibo</button>
+      <button (click)="viewDetails(trip)">Ver detalles</button>
+    </div>
+  </div>
+  <button class="see-more-btn" (click)="seeMore()">Ver más</button>
+</div>

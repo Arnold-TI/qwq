@@ -1,0 +1,44 @@
+<div class="booking-form-container">
+  <h2>Book Vehicle</h2>
+  <form (ngSubmit)="submitBooking()" #bookingForm="ngForm">
+    <div class="form-group">
+      <label for="vehicle">Electric Micromobility Vehicle</label>
+      <select id="vehicle" [(ngModel)]="selectedVehicle" name="vehicle" required>
+        <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+          {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.type }}) - {{ vehicle.location }} - Battery: {{ vehicle.battery }} - Range: {{ vehicle.range }}
+        </option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="date">Date</label>
+      <input type="date" id="date" [(ngModel)]="selectedDate" name="date" required />
+    </div>
+    <div class="form-group">
+      <label for="time">Unlock Time</label>
+      <input type="time" id="time" [(ngModel)]="unlockTime" name="time" required />
+    </div>
+    <div class="form-group">
+      <label for="duration">Duration (minutes)</label>
+      <input type="number" id="duration" [(ngModel)]="duration" name="duration" min="1" required />
+    </div>
+    <button type="submit" class="btn-primary">Book Now</button>
+    <button type="button" class="btn-secondary" (click)="saveDraft()">Save as Draft</button>
+  </form>
+
+  <div class="booking-summary" *ngIf="showSummary">
+    <h3>Booking Summary</h3>
+    <p><strong>Vehicle:</strong> {{ getVehicleName(selectedVehicle) }}</p>
+    <p><strong>Type:</strong> {{ getVehicleType(selectedVehicle) }}</p>
+    <p><strong>Battery Level:</strong> {{ getVehicleBattery(selectedVehicle) }}</p>
+    <p><strong>Range:</strong> {{ getVehicleRange(selectedVehicle) }}</p>
+    <p><strong>Date and time:</strong> {{ selectedDate }} {{ unlockTime }}</p>
+    <p><strong>Duration:</strong> {{ duration }} minutes</p>
+    <p><strong>Rate:</strong> ${{ rate }}/minute</p>
+    <p><strong>Total:</strong> ${{ (duration * rate).toFixed(2) }}</p>
+    <div class="notifications">
+      <label><input type="checkbox" [(ngModel)]="smsReminder" name="smsReminder" /> SMS reminder 30 min before</label>
+      <label><input type="checkbox" [(ngModel)]="emailConfirmation" name="emailConfirmation" /> Email confirmation</label>
+      <label><input type="checkbox" [(ngModel)]="pushNotification" name="pushNotification" /> Push notification when unlocking</label>
+    </div>
+  </div>
+</div>

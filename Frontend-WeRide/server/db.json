@@ -1,0 +1,512 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Laura Pérez",
+      "email": "laura.perez@example.com",
+      "password": "12345",
+      "phone": "+51987654321",
+      "membershipPlanId": "2",
+      "isActive": true
+    },
+    {
+      "id": "2",
+      "name": "Carlos Ramírez",
+      "email": "carlos.ramirez@example.com",
+      "password": "abcdef",
+      "phone": "+51987456123",
+      "membershipPlanId": "1",
+      "isActive": true
+    },
+    {
+      "id": "3",
+      "name": "María González",
+      "email": "maria.gonzalez@example.com",
+      "password": "qwerty",
+      "phone": "+51987321654",
+      "membershipPlanId": "3",
+      "isActive": true
+    },
+    {
+      "id": "4",
+      "name": "José López",
+      "email": "jose.lopez@example.com",
+      "password": "password123",
+      "phone": "+51987789456",
+      "membershipPlanId": "1",
+      "isActive": false
+    }
+  ],
+
+  "companies": [
+    {
+      "id": "1",
+      "name": "EcoMove",
+      "email": "contact@ecomove.pe",
+      "phone": "+5112456789",
+      "vehicles": ["1", "2", "3", "7", "8"]
+    },
+    {
+      "id": "2",
+      "name": "UrbanRide",
+      "email": "info@urbanride.pe",
+      "phone": "+5113567890",
+      "vehicles": ["4", "5", "6"]
+    },
+    {
+      "id": "3",
+      "name": "LimaScooters",
+      "email": "support@limascooters.pe",
+      "phone": "+5114567891",
+      "vehicles": ["9", "10"]
+    }
+  ],
+
+  "vehicles": [
+    {
+      "id": "1",
+      "brand": "Xiaomi",
+      "model": "M365",
+      "year": 2023,
+      "battery": 82,
+      "location": "1",
+      "status": "available",
+      "type": "electric_scooter",
+      "companyId": "1",
+      "pricePerMinute": 0.5
+    },
+    {
+      "id": "2",
+      "brand": "Trek",
+      "model": "FX 3",
+      "year": 2022,
+      "battery": 0,
+      "location": "2",
+      "status": "reserved",
+      "type": "bike",
+      "companyId": "1",
+      "pricePerMinute": 0.3
+    },
+    {
+      "id": "3",
+      "brand": "Segway",
+      "model": "Ninebot",
+      "year": 2023,
+      "battery": 15,
+      "location": "3",
+      "status": "maintenance",
+      "type": "electric_scooter",
+      "companyId": "1",
+      "pricePerMinute": 0.5
+    },
+    {
+      "id": "4",
+      "brand": "Giant",
+      "model": "Escape 2",
+      "year": 2022,
+      "battery": 0,
+      "location": "4",
+      "status": "available",
+      "type": "bike",
+      "companyId": "2",
+      "pricePerMinute": 0.35
+    },
+    {
+      "id": "5",
+      "brand": "Okai",
+      "model": "Neon",
+      "year": 2023,
+      "battery": 90,
+      "location": "5",
+      "status": "available",
+      "type": "electric_scooter",
+      "companyId": "2",
+      "pricePerMinute": 0.45
+    },
+    {
+      "id": "6",
+      "brand": "Lime",
+      "model": "Gen 4",
+      "year": 2023,
+      "battery": 67,
+      "location": "6",
+      "status": "available",
+      "type": "electric_scooter",
+      "companyId": "2",
+      "pricePerMinute": 0.5
+    },
+    {
+      "id": "7",
+      "brand": "Bird",
+      "model": "Zero",
+      "year": 2022,
+      "battery": 45,
+      "location": "7",
+      "status": "available",
+      "type": "electric_scooter",
+      "companyId": "1",
+      "pricePerMinute": 0.48
+    },
+    {
+      "id": "8",
+      "brand": "Specialized",
+      "model": "Como",
+      "year": 2023,
+      "battery": 78,
+      "location": "8",
+      "status": "available",
+      "type": "electric_bike",
+      "companyId": "1",
+      "pricePerMinute": 0.4
+    },
+    {
+      "id": "9",
+      "brand": "Xiaomi",
+      "model": "Pro 2",
+      "year": 2023,
+      "battery": 92,
+      "location": "9",
+      "status": "available",
+      "type": "electric_scooter",
+      "companyId": "3",
+      "pricePerMinute": 0.52
+    },
+    {
+      "id": "10",
+      "brand": "Razor",
+      "model": "E300",
+      "year": 2022,
+      "battery": 38,
+      "location": "10",
+      "status": "maintenance",
+      "type": "electric_scooter",
+      "companyId": "3",
+      "pricePerMinute": 0.42
+    }
+  ],
+
+  "plans": [
+    {
+      "id": "basic-plan-001",
+      "name": "Plan Normal",
+      "description": "Ideal para usuarios ocasionales que buscan una opción económica",
+      "price": "$3.99",
+      "pricePerMinute": 0.6,
+      "duration": "Mensual",
+      "benefits": [
+        "Acceso a scooters estándar",
+        "10% de descuento en cada viaje",
+        "Soporte al cliente básico"
+      ]
+    },
+    {
+      "id": "premium-plan-002",
+      "name": "Plan Estudiantil",
+      "description": "Perfecto para estudiantes que necesitan movilidad frecuente",
+      "price": "$5.99",
+      "pricePerMinute": 0.4,
+      "duration": "Mensual",
+      "benefits": [
+        "Acceso a scooters premium",
+        "20% de descuento en cada viaje",
+        "Soporte al cliente prioritario",
+        "Viajes ilimitados los fines de semana"
+      ]
+    },
+    {
+      "id": "business-plan-003",
+      "name": "Plan Empresarial",
+      "description": "Solución completa para empresas y usuarios intensivos",
+      "price": "$29.99",
+      "pricePerMinute": 0.2,
+      "duration": "Mensual",
+      "benefits": [
+        "Acceso a toda la flota de scooters",
+        "30% de descuento en cada viaje",
+        "Soporte al cliente 24/7",
+        "Informes mensuales de uso",
+        "Viajes ilimitados todos los días"
+      ]
+    },
+    {
+      "id": "pay-as-go-004",
+      "name": "Pay as You Go",
+      "description": "Sin suscripción. Paga por minuto.",
+      "price": "$0",
+      "pricePerMinute": 0.8,
+      "duration": "none",
+      "benefits": [
+        "Sin compromiso mensual",
+        "Pago por uso",
+        "Acceso a scooters básicos"
+      ]
+    }
+  ],
+
+  "locations": [
+    {
+      "id": "1",
+      "name": "Plaza Mayor",
+      "address": "Plaza Mayor, Lima",
+      "coordinates": {
+        "lat": -12.046374,
+        "lng": -77.042793
+      }
+    },
+    {
+      "id": "2",
+      "name": "Parque de la Exposición",
+      "address": "Parque de la Exposición, Lima",
+      "coordinates": {
+        "lat": -12.060176,
+        "lng": -77.036663
+      }
+    },
+    {
+      "id": "3",
+      "name": "Estación Central Metropolitano",
+      "address": "Estación Central, Metropolitano",
+      "coordinates": {
+        "lat": -12.068885,
+        "lng": -77.033529
+      }
+    },
+    {
+      "id": "4",
+      "name": "Jockey Plaza",
+      "address": "Jockey Plaza, Surco",
+      "coordinates": {
+        "lat": -12.084334,
+        "lng": -76.977074
+      }
+    },
+    {
+      "id": "5",
+      "name": "Costa Verde",
+      "address": "Costa Verde, Miraflores",
+      "coordinates": {
+        "lat": -12.122583,
+        "lng": -77.027821
+      }
+    },
+    {
+      "id": "6",
+      "name": "Larcomar",
+      "address": "Larcomar, Miraflores",
+      "coordinates": {
+        "lat": -12.134123,
+        "lng": -77.021567
+      }
+    },
+    {
+      "id": "7",
+      "name": "Universidad San Marcos",
+      "address": "Ciudad Universitaria, Lima",
+      "coordinates": {
+        "lat": -12.058456,
+        "lng": -77.084789
+      }
+    },
+    {
+      "id": "8",
+      "name": "Parque Kennedy",
+      "address": "Parque Kennedy, Miraflores",
+      "coordinates": {
+        "lat": -12.120345,
+        "lng": -77.029876
+      }
+    },
+    {
+      "id": "9",
+      "name": "Centro Comercial Megaplaza",
+      "address": "Megaplaza, Independencia",
+      "coordinates": {
+        "lat": -11.992567,
+        "lng": -77.062134
+      }
+    },
+    {
+      "id": "10",
+      "name": "Aeropuerto Jorge Chávez",
+      "address": "Av. Faucett, Callao",
+      "coordinates": {
+        "lat": -12.021456,
+        "lng": -77.114523
+      }
+    }
+  ],
+
+  "bookings": [
+    {
+      "id": "booking-001",
+      "userId": "1",
+      "vehicleId": "1",
+      "startDate": "2024-10-07T10:00:00Z",
+      "endDate": "2024-10-07T11:30:00Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "booking-002",
+      "userId": "2",
+      "vehicleId": "4",
+      "startDate": "2024-10-07T14:00:00Z",
+      "endDate": "2024-10-07T15:00:00Z",
+      "status": "pending"
+    },
+    {
+      "id": "booking-003",
+      "userId": "3",
+      "vehicleId": "5",
+      "startDate": "2024-10-06T09:00:00Z",
+      "endDate": "2024-10-06T10:45:00Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "booking-004",
+      "userId": "1",
+      "vehicleId": "2",
+      "startDate": "2024-10-05T16:30:00Z",
+      "endDate": "2024-10-05T17:15:00Z",
+      "status": "cancelled"
+    }
+  ],
+
+  "trips": [
+    {
+      "id": "935d73bd-1ab5-437e-a678-e03c92c94134",
+      "userId": "1",
+      "vehicleId": "1",
+      "route": "1068 Av. la Molina - 221 Av. Paz Soldán",
+      "date": "12 Sept, 10:35 AM",
+      "vehicle": "Scooter Eléctrico",
+      "duration": "55 min",
+      "distance": "27.4 km",
+      "image": "assets/scooter-red.png",
+      "cost": 27.50,
+      "startLocationId": "1",
+      "endLocationId": "4"
+    },
+    {
+      "id": "daab8f54-6cd1-4198-a5a9-4dd3b2a14287",
+      "userId": "2",
+      "vehicleId": "5",
+      "route": "513 Av. Universitaria - 2810 Av. de la Marina",
+      "date": "17 Sept, 15:10 PM",
+      "vehicle": "Scooter Eléctrico",
+      "duration": "32 min",
+      "distance": "16.8 km",
+      "image": "assets/scooter-blue.png",
+      "cost": 14.40,
+      "startLocationId": "7",
+      "endLocationId": "2"
+    },
+    {
+      "id": "ef9c803c-2aca-4de3-a27b-f74da6bae7d7",
+      "userId": "3",
+      "vehicleId": "6",
+      "route": "1489 Av. Los Quechuas - 2390 Av. Primavera",
+      "date": "28 Sept, 06:40 AM",
+      "vehicle": "Scooter Eléctrico",
+      "duration": "1h45min",
+      "distance": "67.2 km",
+      "image": "assets/scooter-green.png",
+      "cost": 52.50,
+      "startLocationId": "9",
+      "endLocationId": "5"
+    },
+    {
+      "id": "trip-004",
+      "userId": "1",
+      "vehicleId": "2",
+      "route": "Parque Kennedy - Centro Comercial Jockey Plaza",
+      "date": "5 Oct, 08:15 AM",
+      "vehicle": "Bicicleta",
+      "duration": "42 min",
+      "distance": "18.3 km",
+      "image": "assets/bike-orange.png",
+      "cost": 12.60,
+      "startLocationId": "8",
+      "endLocationId": "4"
+    },
+    {
+      "id": "trip-005",
+      "userId": "2",
+      "vehicleId": "9",
+      "route": "Megaplaza - Universidad San Marcos",
+      "date": "6 Oct, 19:20 PM",
+      "vehicle": "Scooter Eléctrico",
+      "duration": "28 min",
+      "distance": "12.1 km",
+      "image": "assets/scooter-purple.png",
+      "cost": 14.56,
+      "startLocationId": "9",
+      "endLocationId": "7"
+    }
+  ],
+
+  "unlockRequests": [
+    {
+      "id": "unlock-001",
+      "userId": "1",
+      "vehicleId": "1",
+      "requestedAt": "2024-10-07T10:00:00Z",
+      "unlockTime": "2024-10-07T10:02:00Z",
+      "status": "unlocked"
+    },
+    {
+      "id": "unlock-002",
+      "userId": "2",
+      "vehicleId": "5",
+      "requestedAt": "2024-10-07T14:30:00Z",
+      "unlockTime": "2024-10-07T14:30:00Z",
+      "status": "pending"
+    },
+    {
+      "id": "unlock-003",
+      "userId": "3",
+      "vehicleId": "3",
+      "requestedAt": "2024-10-06T16:15:00Z",
+      "unlockTime": "2024-10-06T16:15:00Z",
+      "status": "failed"
+    }
+  ],
+
+  "notifications": [
+    {
+      "id": "notif-001",
+      "userId": "1",
+      "title": "Viaje completado",
+      "message": "Tu viaje de 55 minutos ha sido completado exitosamente",
+      "type": "trip_completed",
+      "createdAt": "2024-10-07T11:30:00Z",
+      "read": false
+    },
+    {
+      "id": "notif-002",
+      "userId": "2",
+      "title": "Reserva confirmada",
+      "message": "Tu reserva para el scooter Okai Neon ha sido confirmada",
+      "type": "booking_confirmed",
+      "createdAt": "2024-10-07T14:00:00Z",
+      "read": false
+    },
+    {
+      "id": "notif-003",
+      "userId": "1",
+      "title": "Batería baja",
+      "message": "El vehículo que reservaste tiene batería baja (15%). ¿Deseas cambiar de vehículo?",
+      "type": "low_battery",
+      "createdAt": "2024-10-07T09:45:00Z",
+      "read": true
+    },
+    {
+      "id": "notif-004",
+      "userId": "3",
+      "title": "Plan renovado",
+      "message": "Tu Plan Empresarial ha sido renovado automáticamente",
+      "type": "plan_renewed",
+      "createdAt": "2024-10-01T00:00:00Z",
+      "read": true
+    }
+  ]
+}

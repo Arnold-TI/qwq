@@ -1,0 +1,37 @@
+<div class="sidebar" [class.collapsed]="collapsed">
+  <div class="profile-section" *ngIf="!collapsed">
+    <button mat-icon-button>
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    <h3>User</h3>
+  </div>
+
+  <nav>
+    <ul>
+      <li routerLink="/home" routerLinkActive="active">
+        <mat-icon>dashboard</mat-icon>
+        <span *ngIf="!collapsed">Inicio</span>
+      </li>
+      <li>
+        <mat-icon>garage</mat-icon>
+        <span *ngIf="!collapsed">Garaje</span>
+      </li>
+      <li>
+        <mat-icon>person</mat-icon>
+        <span *ngIf="!collapsed">Tu</span>
+      </li>
+      <li routerLink="/plan" routerLinkActive="active">
+        <mat-icon>card_membership</mat-icon>
+        <span *ngIf="!collapsed">Planes</span>
+      </li>
+      <li routerLink="/trip" routerLinkActive="active">
+        <mat-icon>luggage</mat-icon>
+        <span *ngIf="!collapsed">Viaje</span>
+      </li>
+      <li routerLink="/booking" routerLinkActive="active">
+        <mat-icon>book_online</mat-icon>
+        <span *ngIf="!collapsed">Reservas</span>
+      </li>
+    </ul>
+  </nav>
+</div>

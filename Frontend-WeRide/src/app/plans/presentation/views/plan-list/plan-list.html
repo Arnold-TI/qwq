@@ -1,0 +1,32 @@
+<div class="plans-layout">
+  <div class="plan-list-section">
+    <h2>Planes</h2>
+    <button class="plan-card-btn" *ngFor="let plan of plans" (click)="selectPlan(plan)">
+      <span class="plan-title">{{ planTitle(plan.id) }}</span>
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <div class="plan-detail-section" *ngIf="selectedPlan">
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>{{ planTitle(selectedPlan.id) }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="plan-info">
+          <p><strong>Duración:</strong> {{ selectedPlan.duration }}</p>
+          <p><strong>Precio:</strong> {{ selectedPlan.price }}</p>
+        </div>
+        <div class="plan-benefits">
+          <h4>Beneficios:</h4>
+          <ul>
+            <li *ngFor="let benefit of selectedPlan.benefits">{{ benefit }}</li>
+          </ul>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" class="pay-button">Pagar</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

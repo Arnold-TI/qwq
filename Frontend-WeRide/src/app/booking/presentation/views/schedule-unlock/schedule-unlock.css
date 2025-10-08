@@ -1,0 +1,130 @@
+.content {
+  padding: 2rem;
+}
+
+.schedule-card {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.vehicle-info {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.vehicle-icon {
+  background-color: #7c3aed;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vehicle-details h3 {
+  margin: 0 0 4px 0;
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.vehicle-details p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+  margin-top: 1rem;
+}
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.summary {
+  margin-top: 1.5rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.summary h3 {
+  margin: 0 0 1rem 0;
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.value {
+  color: #111827;
+  font-weight: 500;
+}
+
+.total-row {
+  background: white;
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.total {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+.actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 10px;
+}
+
+.actions .schedule {
+  flex: 1;
+  background-color: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.actions .draft {
+  flex: 1;
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+}

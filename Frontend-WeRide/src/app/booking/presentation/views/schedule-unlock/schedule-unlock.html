@@ -1,0 +1,55 @@
+<div class="content">
+  <h2>Schedule Unlock</h2>
+
+  <div class="schedule-card">
+    <div class="vehicle-info">
+      <div class="vehicle-icon">🛴</div>
+      <div class="vehicle-details">
+        <h3>{{ selectedVehicle?.brand }} {{ selectedVehicle?.model }}</h3>
+        <p>{{ selectedVehicle?.location }}</p>
+      </div>
+    </div>
+
+    <label>Select Date</label>
+    <input type="date" [(ngModel)]="selectedDate" name="date" required>
+
+    <label>Unlock Time</label>
+    <input type="time" [(ngModel)]="unlockTime" name="time" required>
+
+    <label>Duration (hours)</label>
+    <select [(ngModel)]="duration" name="duration" required>
+      <option *ngFor="let d of [1,2,3,4,5,6]" [value]="d">{{ d }} hour{{ d > 1 ? 's' : '' }}</option>
+    </select>
+
+    <div class="summary" *ngIf="selectedVehicle">
+      <h3>Booking Summary</h3>
+      <div class="summary-content">
+        <div class="summary-row">
+          <span class="label">Vehicle:</span>
+          <span class="value">{{ selectedVehicle.brand }} {{ selectedVehicle.model }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Date & Time:</span>
+          <span class="value">{{ formatDateTime() }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Duration:</span>
+          <span class="value">{{ duration }} hour{{ duration > 1 ? 's' : '' }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Rate:</span>
+          <span class="value">${{ selectedVehicle.rate }}/minute</span>
+        </div>
+        <div class="summary-row total-row">
+          <span class="label">Total:</span>
+          <span class="value total">${{ calculateTotal() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="schedule" (click)="scheduleUnlock()">Schedule Unlock</button>
+      <button type="button" class="draft" (click)="saveDraft()">Save as Draft</button>
+    </div>
+  </div>
+</div>

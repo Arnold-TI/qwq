@@ -1,0 +1,62 @@
+<div class="main-layout">
+  <div class="content expanded full-width">
+    <h2>Vehicle Unlock Status</h2>
+    <p>Monitor your vehicle's unlock status in real-time</p>
+    <div class="status-card">
+      <div class="status-header">
+        <h3>Current Status</h3>
+        <button class="refresh-btn" (click)="refreshStatus()">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+      <div class="status-section">
+        <div class="status-display">
+          <div class="status-indicator unlocked">
+            <span>Unlocked</span>
+            <span class="user-label">Tu</span>
+          </div>
+        </div>
+        <div class="vehicle-characteristics-row">
+          <span class="scooter-icon-bg">
+            <span class="iconify" data-icon="mdi:scooter" style="font-size:48px;color:#fff;"></span>
+          </span>
+          <div class="vehicle-characteristics">
+            <span class="characteristic-item"><strong>ID vehículo:</strong> {{ vehicleInfo.id }}</span>
+            <span class="characteristic-item"><strong>Batería:</strong> {{ vehicleInfo.battery }}%</span>
+            <span class="characteristic-item"><strong>Marca:</strong> {{ vehicleInfo.brand }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="actions-section">
+        <div class="action-buttons">
+          <button class="btn-lock" (click)="lockVehicle()" [disabled]="unlockStatus === 'Locked'">
+            <mat-icon>lock</mat-icon>
+            Lock Vehicle
+          </button>
+          <button class="btn-unlock" (click)="unlockVehicle()" [disabled]="unlockStatus === 'Unlocked'">
+            <mat-icon>lock_open</mat-icon>
+            Unlock Vehicle
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="recent-activity">
+      <h3>Recent Activity</h3>
+      <ul>
+        <li *ngFor="let activity of recentActivity">
+          <span>{{ activity.message }}</span>
+          <span class="timestamp">{{ activity.time }}</span>
+        </li>
+      </ul>
+    </div>
+    <div class="footer">
+      <p>© 2025 Vehicle Control System. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </div>
+</div>
