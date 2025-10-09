@@ -5,6 +5,7 @@ import { BookingTimerService } from '../../domain/services/booking-timer.service
 import { SendNotificationsUseCase } from '../use-cases/send-notifications.usecase';
 import { BookingRepository } from '../../domain/repositories/booking.repository';
 import { ReservationTimer } from '../../domain/model/reservation-timer.entity';
+import { of } from 'rxjs'; // ✅ Agregar este import para el 'of([])'
 
 export interface TimerEvent {
   type: 'warning' | 'expired' | 'extended';
@@ -29,19 +30,19 @@ export class ReservationTimerHandler {
     this.initializeTimerMonitoring();
   }
 
-  // Monitoreo continuo de timers activos
+  // reservation-timer.handler.ts - SECCIÓN CORREGIDA
   private initializeTimerMonitoring(): void {
     interval(30000) // Cada 30 segundos
       .pipe(
         takeUntil(this.destroy$),
-        switchMap(() => this.timerService.getActiveTimers()),
-        catchError(error => {
+        switchMap(() => this.timerService.getActiveTimers()), // ✅ Ahora existe
+        catchError((error: any) => { // ✅ Tipo explícito
           console.error('Error monitoring timers:', error);
-          return [];
+          return of([]); // ✅ Importar 'of' de rxjs
         })
       )
-      .subscribe((timers: ReservationTimer[]) => {
-        timers.forEach((timer: ReservationTimer) => this.processTimer(timer));
+      .subscribe((timers: ReservationTimer[]) => { // ✅ Tipo explícito
+        timers.forEach((timer: ReservationTimer) => this.processTimer(timer)); // ✅ Tipo explícito
       });
   }
 
