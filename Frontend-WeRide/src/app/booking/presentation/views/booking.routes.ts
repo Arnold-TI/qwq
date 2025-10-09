@@ -8,7 +8,7 @@ export const BOOKING_ROUTES: Routes = [
   },
   {
     path: 'form',
-    loadComponent: () => import('./booking-form/booking').then(m => m.BookingFormComponent)
+    loadComponent: () => import('./booking-form/booking').then(m => m.BookingComponent) // ✅ Cambiar a BookingComponent
   },
   {
     path: 'list',

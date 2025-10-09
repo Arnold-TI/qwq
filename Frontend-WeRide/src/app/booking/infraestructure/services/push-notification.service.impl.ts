@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { map, catchError, delay } from 'rxjs/operators';
+import { Observable, of, forkJoin } from 'rxjs';
+import { map, catchError, delay, switchMap } from 'rxjs/operators';
 import { NotificationSchedulerService } from '../../domain/services/notification-scheduler.service';
-import { Notification } from '../../domain/model/notification';
+import type { Notification } from '../../domain/model/notification';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({
@@ -19,7 +19,7 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   scheduleBookingStartNotification(bookingId: string, scheduledTime: Date): Observable<boolean> {
     const notification: Notification = {
       id: this.generateNotificationId(),
-      userId: '', // Se obtendría del booking
+      userId: '',
       type: 'booking_start',
       title: '🚀 ¡Tu reserva ha comenzado!',
       message: 'Puedes desbloquear tu vehículo ahora',
@@ -38,9 +38,8 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   }
 
   scheduleBookingEndNotification(bookingId: string, minutesBefore: number): Observable<boolean> {
-    // Obtener el booking para calcular la hora de notificación
     return this.http.get<any>(`${this.API_URL}/bookings/${bookingId}`).pipe(
-      switchMap(booking => {
+      switchMap((booking: any) => {
         const endTime = new Date(booking.scheduledEndTime);
         const notificationTime = new Date(endTime.getTime() - (minutesBefore * 60000));
 
@@ -85,7 +84,7 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
 
         return this.scheduleNotification(notification);
       }),
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Error scheduling booking end notification:', error);
         return of(false);
       })
@@ -94,12 +93,12 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
 
   scheduleBookingExpirationNotification(bookingId: string): Observable<boolean> {
     return this.http.get<any>(`${this.API_URL}/bookings/${bookingId}`).pipe(
-      switchMap(booking => {
+      switchMap((booking: any) => {
         const notification: Notification = {
           id: this.generateNotificationId(),
           userId: booking.userId,
           type: 'booking_expired',
-          title: '❌ Tu reserva ha expirado',
+          title: 'Tu reserva ha expirado',
           message: 'El vehículo se ha bloqueado automáticamente',
           category: 'booking',
           priority: 'high',
@@ -120,11 +119,11 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
 
   scheduleUnlockNotification(unlockRequestId: string): Observable<boolean> {
     return this.http.get<any>(`${this.API_URL}/unlock-requests/${unlockRequestId}`).pipe(
-      switchMap(unlockRequest => {
+      switchMap((unlockRequest: any) => {
         if (!unlockRequest.scheduledFor) return of(false);
 
         const notificationTime = new Date(
-          new Date(unlockRequest.scheduledFor).getTime() - (10 * 60000) // 10 min antes
+          new Date(unlockRequest.scheduledFor).getTime() - (10 * 60000)
         );
 
         const notification: Notification = {
@@ -152,13 +151,12 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
 
   cancelScheduledNotifications(bookingId: string): Observable<boolean> {
     return this.http.get<Notification[]>(`${this.API_URL}/notifications?data.bookingId=${bookingId}&status=scheduled`).pipe(
-      switchMap(notifications => {
-        const cancelPromises = notifications.map(notification =>
+      switchMap((notifications: Notification[]) => {
+        const cancelPromises = notifications.map((notification: Notification) =>
           this.http.patch(`${this.API_URL}/notifications/${notification.id}`, { status: 'cancelled' })
         );
 
-        // Cancelar también los timers locales
-        notifications.forEach(notification => {
+        notifications.forEach((notification: Notification) => {
           this.cancelLocalScheduledNotification(notification.id);
         });
 
@@ -173,10 +171,9 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   updateNotificationSchedule(notificationId: string, newTime: Date): Observable<boolean> {
     return this.http.patch(`${this.API_URL}/notifications/${notificationId}`, {
       scheduledFor: newTime.toISOString(),
-      status: 'scheduled'
+      status: 'scheduled' as const
     }).pipe(
       map(() => {
-        // Reprogramar el timer local
         this.rescheduleLocalNotification(notificationId, newTime);
         return true;
       }),
@@ -191,15 +188,16 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   }
 
   sendImmediateNotification(notification: Notification): Observable<boolean> {
-    // Simular envío de notificación push
-    return this.http.post(`${this.API_URL}/notifications`, {
+    const notificationData = {
       ...notification,
-      status: 'sent',
-      sentAt: new Date().toISOString()
-    }).pipe(
+      status: 'sent' as const,
+      sentAt: new Date()
+    };
+
+    return this.http.post(`${this.API_URL}/notifications`, notificationData).pipe(
       switchMap(() => this.deliverNotification(notification)),
       map(() => true),
-      catchError(error => {
+      catchError((error: any) => {
         console.error('Failed to send immediate notification:', error);
         return of(false);
       })
@@ -207,26 +205,26 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   }
 
   sendBulkNotifications(notifications: Notification[]): Observable<boolean> {
-    const sendPromises = notifications.map(notification =>
+    const sendPromises = notifications.map((notification: Notification) =>
       this.sendImmediateNotification(notification)
     );
 
     return forkJoin(sendPromises).pipe(
-      map(results => results.every(result => result)),
+      map((results: boolean[]) => results.every((result: boolean) => result)),
       catchError(() => of(false))
     );
   }
 
   retryFailedNotification(notificationId: string): Observable<boolean> {
     return this.http.get<Notification>(`${this.API_URL}/notifications/${notificationId}`).pipe(
-      switchMap(notification => {
+      switchMap((notification: Notification) => {
         if (notification.status !== 'failed') return of(false);
 
-        const retryNotification = {
+        const retryNotification: Notification = {
           ...notification,
-          status: 'pending',
+          status: 'pending' as const,
           retryCount: (notification.retryCount || 0) + 1,
-          lastRetryAt: new Date().toISOString()
+          lastRetryAt: new Date()
         };
 
         return this.sendImmediateNotification(retryNotification);
@@ -243,8 +241,8 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
 
   markNotificationAsDelivered(notificationId: string): Observable<boolean> {
     return this.http.patch(`${this.API_URL}/notifications/${notificationId}`, {
-      status: 'delivered',
-      deliveredAt: new Date().toISOString()
+      status: 'delivered' as const,
+      deliveredAt: new Date()
     }).pipe(
       map(() => true),
       catchError(() => of(false))
@@ -254,7 +252,7 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   // Métodos privados para manejo local de notificaciones programadas
   private scheduleNotification(notification: Notification): Observable<boolean> {
     return this.http.post<Notification>(`${this.API_URL}/notifications`, notification).pipe(
-      map(savedNotification => {
+      map((savedNotification: Notification) => {
         // Programar localmente si es para el futuro
         if (savedNotification.scheduledFor && new Date(savedNotification.scheduledFor) > new Date()) {
           this.scheduleLocalNotification(savedNotification);
@@ -268,13 +266,13 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   private scheduleLocalNotification(notification: Notification): void {
     if (!notification.scheduledFor) return;
 
-    const delay = new Date(notification.scheduledFor).getTime() - Date.now();
+    const delayMs = new Date(notification.scheduledFor).getTime() - Date.now();
 
-    if (delay > 0) {
+    if (delayMs > 0) {
       const timeoutId = setTimeout(() => {
         this.deliverNotification(notification);
         this.scheduledNotifications.delete(notification.id);
-      }, delay);
+      }, delayMs);
 
       this.scheduledNotifications.set(notification.id, timeoutId);
     }
@@ -291,14 +289,19 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   private rescheduleLocalNotification(notificationId: string, newTime: Date): void {
     this.cancelLocalScheduledNotification(notificationId);
 
-    // Obtener la notificación actualizada y reprogramar
     this.http.get<Notification>(`${this.API_URL}/notifications/${notificationId}`).subscribe(
-      notification => this.scheduleLocalNotification(notification)
+      (notification: Notification) => {
+        const updatedNotification: Notification = {
+          ...notification,
+          scheduledFor: newTime // ✅ Usar el parámetro newTime
+        };
+
+        this.scheduleLocalNotification(updatedNotification);
+      }
     );
   }
 
   private deliverNotification(notification: Notification): Observable<boolean> {
-    // Simular diferentes métodos de entrega
     switch (notification.deliveryMethod) {
       case 'push':
         return this.deliverPushNotification(notification);
@@ -312,31 +315,24 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   }
 
   private deliverPushNotification(notification: Notification): Observable<boolean> {
-    // Simular entrega de notificación push
     console.log('🔔 Push Notification:', notification.title, notification.message);
 
-    // En un entorno real, aquí usarías el Service Worker o Firebase Cloud Messaging
-    if ('Notification' in window && Notification.permission === 'granted') {
-      const options = {
+    if ('Notification' in window && (Notification as any).permission === 'granted') {
+      const options: NotificationOptions = {
         body: notification.message,
         icon: '/assets/icons/weride-icon.png',
         badge: '/assets/icons/weride-badge.png',
-        data: notification.data,
-        actions: notification.actions?.map(action => ({
-          action: action.id,
-          title: action.label
-        })) || []
+        data: notification.data
       };
 
       new Notification(notification.title, options);
     }
 
-    return of(true).pipe(delay(100)); // Simular latencia de red
+    return of(true).pipe(delay(100));
   }
 
   private deliverSMSNotification(notification: Notification): Observable<boolean> {
     console.log('📱 SMS Notification:', notification.message);
-    // Aquí integrarías con un servicio SMS como Twilio
     return of(true).pipe(delay(200));
   }
 
@@ -347,9 +343,6 @@ export class PushNotificationServiceImpl extends NotificationSchedulerService {
   }
 
   private generateNotificationId(): string {
-    return 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+    return 'notif-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10); // ✅ Cambié substr por substring
   }
 }
-
-// Importar forkJoin
-import { forkJoin } from 'rxjs';

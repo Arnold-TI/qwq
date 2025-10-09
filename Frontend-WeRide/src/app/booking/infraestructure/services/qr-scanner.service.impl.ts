@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, of } from 'rxjs'; // ✅ Removido throwError
+import { map, catchError, switchMap } from 'rxjs/operators'; // ✅ Agregado switchMap
 import { QRValidatorService, QRValidationResult } from '../../domain/services/qr-validator.service';
 import { HttpClient } from '@angular/common/http';
 
@@ -16,18 +16,18 @@ export class QRScannerServiceImpl extends QRValidatorService {
 
   validateQRCode(qrData: string, userId: string): Observable<QRValidationResult> {
     try {
-      const parsedData = this.parseQRData(qrData);
+      const parsedData = this.parseQRDataSync(qrData);
 
       return this.performValidations(parsedData, userId).pipe(
-        map(validations => ({
-          isValid: Object.values(validations).every(v => v),
+        map((validations: any) => ({
+          isValid: Object.values(validations).every((v: any) => v),
           vehicleId: parsedData.vehicleId,
           bookingId: parsedData.bookingId,
           expiresAt: parsedData.expiresAt ? new Date(parsedData.expiresAt) : undefined,
           errorMessage: this.getValidationErrorMessage(validations),
           validationDetails: validations
         })),
-        catchError(error => of({
+        catchError((error: any) => of({
           isValid: false,
           errorMessage: error.message,
           validationDetails: {
@@ -39,7 +39,7 @@ export class QRScannerServiceImpl extends QRValidatorService {
           }
         }))
       );
-    } catch (error) {
+    } catch (error: any) {
       return of({
         isValid: false,
         errorMessage: 'Formato de QR inválido',
@@ -112,9 +112,8 @@ export class QRScannerServiceImpl extends QRValidatorService {
     try {
       const parsed = this.parseQRDataSync(qrData);
 
-      // Verificar que el usuario tenga una reserva activa para este vehículo
       return this.http.get<any[]>(`${this.API_URL}/bookings?userId=${userId}&vehicleId=${parsed.vehicleId}&status=active`).pipe(
-        map(bookings => bookings.length > 0),
+        map((bookings: any[]) => bookings.length > 0),
         catchError(() => of(false))
       );
     } catch {
@@ -153,7 +152,6 @@ export class QRScannerServiceImpl extends QRValidatorService {
     }
   }
 
-  // Métodos privados auxiliares
   private parseQRDataSync(qrData: string): any {
     if (!this.validateQRFormat(qrData)) {
       throw new Error('Invalid QR format');
@@ -165,10 +163,10 @@ export class QRScannerServiceImpl extends QRValidatorService {
   }
 
   private performValidations(parsedData: any, userId: string): Observable<any> {
-    return this.validateUserAuthorization(parsedData, userId).pipe(
-      switchMap(userAuthorized =>
+    return this.validateUserAuthorizationInternal(parsedData, userId).pipe( // ✅ Cambié el nombre para evitar duplicado
+      switchMap((userAuthorized: boolean) => // ✅ Tipo explícito
         this.checkVehicleExists(parsedData.vehicleId).pipe(
-          map(vehicleExists => ({
+          map((vehicleExists: boolean) => ({ // ✅ Tipo explícito
             formatValid: true,
             signatureValid: this.validateQRSignature(`weride://unlock/${btoa(JSON.stringify(parsedData))}`),
             notExpired: this.validateQRExpiration(`weride://unlock/${btoa(JSON.stringify(parsedData))}`),
@@ -187,16 +185,14 @@ export class QRScannerServiceImpl extends QRValidatorService {
     );
   }
 
-  private validateUserAuthorization(parsedData: any, userId: string): Observable<boolean> {
-    // Verificar que el usuario tenga una reserva activa para este vehículo
+  private validateUserAuthorizationInternal(parsedData: any, userId: string): Observable<boolean> {
     return this.http.get<any[]>(`${this.API_URL}/bookings?userId=${userId}&vehicleId=${parsedData.vehicleId}&status=active`).pipe(
-      map(bookings => bookings.some(booking => booking.id === parsedData.bookingId)),
+      map((bookings: any[]) => bookings.some((booking: any) => booking.id === parsedData.bookingId)), // ✅ Tipos explícitos
       catchError(() => of(false))
     );
   }
 
   private generateSignature(vehicleId: string, bookingId: string, expirationTime: Date): string {
-    // Simulación de firma (en producción usaría HMAC o similar)
     const data = `${vehicleId}-${bookingId}-${expirationTime.getTime()}`;
     return btoa(data).substring(0, 16); // Simplified signature
   }

@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError, forkJoin} from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { BookingRepository } from '../../domain/repositories/booking.repository';
 import { BookingTimerService } from '../../domain/services/booking-timer.service';
 import { NotificationSchedulerService } from '../../domain/services/notification-scheduler.service';
-import { Booking } from '../../domain/model/booking.entity';
+import { Booking, NotificationPreferences } from '../../domain/model/booking.entity';
 
 export interface CreateReservationRequest {
   userId: string;
@@ -12,12 +12,7 @@ export interface CreateReservationRequest {
   locationId: string;
   scheduledStartTime: Date;
   durationMinutes: number;
-  notificationPreferences: {
-    startNotification: boolean;
-    endingNotification: boolean;
-    methods: string[];
-    advanceMinutes: number;
-  };
+  notificationPreferences: NotificationPreferences;
 }
 
 export interface CreateReservationResponse {
@@ -47,7 +42,7 @@ export class CreateReservationUseCase {
         return this.createBooking(request);
       }),
       switchMap(booking => this.setupBookingTimer(booking, request.durationMinutes)),
-      switchMap(booking => this.scheduleNotifications(booking, request.notificationPreferences)),
+      switchMap(booking => this.scheduleNotifications(booking, request.notificationPreferences)), // ✅ Tipo correcto
       map(booking => ({
         success: true,
         booking,
@@ -109,11 +104,11 @@ export class CreateReservationUseCase {
     );
   }
 
-  private scheduleNotifications(booking: Booking, preferences: any): Observable<Booking> {
-    const notificationPromises: Observable<boolean>[] = [];
+  private scheduleNotifications(booking: Booking, preferences: NotificationPreferences): Observable<Booking> {
+    const notificationObservables: Observable<boolean>[] = [];
 
     if (preferences.startNotification) {
-      notificationPromises.push(
+      notificationObservables.push(
         this.notificationService.scheduleBookingStartNotification(
           booking.id,
           booking.scheduledStartTime
@@ -122,7 +117,7 @@ export class CreateReservationUseCase {
     }
 
     if (preferences.endingNotification) {
-      notificationPromises.push(
+      notificationObservables.push(
         this.notificationService.scheduleBookingEndNotification(
           booking.id,
           preferences.advanceMinutes
@@ -130,22 +125,28 @@ export class CreateReservationUseCase {
       );
     }
 
+    // ✅ CORREGIDO: Solo 1 argumento
+    if (preferences.expirationNotification) {
+      notificationObservables.push(
+        this.notificationService.scheduleBookingExpirationNotification?.(
+          booking.id  // ✅ Solo booking.id
+        ) || of(true)
+      );
+    }
+
     // Si no hay notificaciones que programar, retornar el booking directamente
-    if (notificationPromises.length === 0) {
+    if (notificationObservables.length === 0) {
       return of(booking);
     }
 
-    // Ejecutar todas las programaciones de notificaciones en paralelo
-    return new Observable(observer => {
-      Promise.all(notificationPromises.map(obs => obs.toPromise()))
-        .then(() => {
-          observer.next(booking);
-          observer.complete();
-        })
-        .catch(error => {
-          observer.error(error);
-        });
-    });
+    // Usar forkJoin para ejecutar todas las notificaciones en paralelo
+    return forkJoin(notificationObservables).pipe(
+      map(() => booking),
+      catchError(error => {
+        console.error('Error scheduling notifications:', error);
+        return of(booking);
+      })
+    );
   }
 
   private calculateEstimatedCost(durationMinutes: number): number {
@@ -154,7 +155,7 @@ export class CreateReservationUseCase {
   }
 
   private generateBookingId(): string {
-    return 'booking-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    return 'booking-' + Date.now() + '-' + Math.random().toString(36).slice(2, 11);
   }
 
   private handleError(error: any): Observable<CreateReservationResponse> {

@@ -76,9 +76,9 @@ export class UnlockWithQRUseCase {
       qrCode: request.qrData,
       qrScannedAt: new Date(),
       requestLocation: request.userLocation,
-      vehicleLocation: { lat: 0, lng: 0 }, // Se obtendría del servicio de vehículos
+      vehicleLocation: { lat: 0, lng: 0 },
       distanceValidation: false,
-      maxDistanceMeters: 50, // 50 metros máximo
+      maxDistanceMeters: 50,
       retryCount: 0,
       maxRetries: 3,
       vehicleConnectionStatus: 'online',
@@ -95,10 +95,9 @@ export class UnlockWithQRUseCase {
       unlockRequest.requestLocation
     ).pipe(
       switchMap(result => {
-        // Actualizar el estado del unlock request
-        const updatedRequest = {
+        const updatedRequest: UnlockRequest = {
           ...unlockRequest,
-          status: result.success ? 'success' : 'failed',
+          status: result.success ? ('success' as const) : ('failed' as const),
           completedAt: result.success ? new Date() : undefined,
           failureReason: result.success ? undefined : result.message
         };
@@ -111,7 +110,7 @@ export class UnlockWithQRUseCase {
   }
 
   private generateUnlockRequestId(): string {
-    return 'unlock-qr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+    return 'unlock-qr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
   }
 
   private handleUnlockError(error: any): Observable<UnlockResult> {

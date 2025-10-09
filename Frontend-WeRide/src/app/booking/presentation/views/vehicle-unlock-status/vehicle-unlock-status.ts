@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, timer, switchMap } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs'; // ✅ Removidos timer y switchMap no utilizados
 import { GetUnlockStatusUseCase } from '../../../application/use-cases/get-unlock-status.usecase';
 
 interface VehicleStatus {
@@ -93,16 +93,19 @@ export class VehicleUnlockStatusComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (status) => {
+        // ✅ CORRECCIÓN PRINCIPAL: Normalizar vehicleStatus
+        const normalizedStatus = this.normalizeStatusResponse(status);
+
         this.statusDetail = {
-          ...status,
-          attemptHistory: this.generateAttemptHistory(status)
+          ...normalizedStatus,
+          attemptHistory: this.generateAttemptHistory(normalizedStatus)
         };
 
         this.updateUIState();
         this.isLoading = false;
 
         // Detener auto-refresh si el proceso terminó
-        if (this.isStatusFinal(status.status)) {
+        if (this.isStatusFinal(normalizedStatus.status)) {
           this.stopStatusChecking();
           this.autoRefresh = false;
         }
@@ -113,6 +116,45 @@ export class VehicleUnlockStatusComponent implements OnInit, OnDestroy {
         this.stopStatusChecking();
       }
     });
+  }
+
+  // ✅ MÉTODO NUEVO: Normalizar respuesta del servicio
+  private normalizeStatusResponse(status: any): UnlockStatusDetail {
+    let normalizedVehicleStatus: VehicleStatus | undefined;
+
+    if (status.vehicleStatus) {
+      // Normalizar connectionStatus a los tipos permitidos
+      let connectionStatus: 'online' | 'offline' | 'weak' = 'offline';
+
+      if (status.vehicleStatus.connectionStatus) {
+        const statusStr = status.vehicleStatus.connectionStatus.toLowerCase();
+        if (statusStr === 'online' || statusStr === 'offline' || statusStr === 'weak') {
+          connectionStatus = statusStr as 'online' | 'offline' | 'weak';
+        }
+      }
+
+      normalizedVehicleStatus = {
+        isLocked: status.vehicleStatus.isLocked ?? true,
+        batteryLevel: status.vehicleStatus.batteryLevel ?? 0,
+        connectionStatus,
+        lastActivity: status.vehicleStatus.lastActivity ? new Date(status.vehicleStatus.lastActivity) : undefined,
+        location: status.vehicleStatus.location
+      };
+    }
+
+    return {
+      unlockRequestId: status.unlockRequestId || this.unlockRequestId,
+      status: status.status || 'pending',
+      message: status.message || '',
+      progress: status.progress || 0,
+      estimatedTimeRemaining: status.estimatedTimeRemaining,
+      canRetry: status.canRetry ?? false,
+      retryCount: status.retryCount || 0,
+      maxRetries: status.maxRetries || 3,
+      vehicleStatus: normalizedVehicleStatus,
+      lastUpdated: status.lastUpdated ? new Date(status.lastUpdated) : new Date(),
+      attemptHistory: []
+    };
   }
 
   // Actualizar estado de la UI
@@ -146,7 +188,7 @@ export class VehicleUnlockStatusComponent implements OnInit, OnDestroy {
   }
 
   // Generar historial de intentos
-  private generateAttemptHistory(status: any): any[] {
+  private generateAttemptHistory(status: UnlockStatusDetail): any[] {
     const history = [];
 
     for (let i = 1; i <= status.retryCount + 1; i++) {
@@ -192,14 +234,18 @@ export class VehicleUnlockStatusComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Navegar atrás
+  // ✅ CORRECCIÓN: Manejar promesas de navegación
   goBack(): void {
-    this.router.navigate(['/booking/unlock-vehicle']);
+    this.router.navigate(['/booking/unlock-vehicle']).catch(error => {
+      console.error('Navigation error:', error);
+    });
   }
 
-  // Navegar a lista de reservas
+  // ✅ CORRECCIÓN: Manejar promesas de navegación
   goToBookings(): void {
-    this.router.navigate(['/booking/booking-list']);
+    this.router.navigate(['/booking/booking-list']).catch(error => {
+      console.error('Navigation error:', error);
+    });
   }
 
   // Obtener usuario actual

@@ -62,7 +62,6 @@ export class SendNotificationsUseCase {
     }
   }
 
-  // US-18: Notificación de inicio
   private sendBookingStartNotification(booking: any): Observable<SendNotificationResponse> {
     const notification = {
       id: this.generateNotificationId(),
@@ -76,7 +75,7 @@ export class SendNotificationsUseCase {
         startTime: booking.scheduledStartTime,
         endTime: booking.scheduledEndTime
       },
-      deliveryMethod: 'push', // Se expandirá según preferencias
+      deliveryMethod: 'push',
       status: 'pending',
       createdAt: new Date(),
       actions: [
@@ -106,7 +105,6 @@ export class SendNotificationsUseCase {
     );
   }
 
-  // US-16, US-18: Notificación de fin próximo
   private sendBookingEndingNotification(booking: any): Observable<SendNotificationResponse> {
     return this.timerService.getRemainingTime(booking.timer?.id).pipe(
       switchMap(remainingMinutes => {
@@ -156,13 +154,12 @@ export class SendNotificationsUseCase {
     );
   }
 
-  // US-18: Notificación de expiración
   private sendBookingExpiredNotification(booking: any): Observable<SendNotificationResponse> {
     const notification = {
       id: this.generateNotificationId(),
       userId: booking.userId,
       type: 'booking_expired',
-      title: '❌ Tu reserva ha expirado',
+      title: 'Tu reserva ha expirado',
       message: `Tu reserva del vehículo ${booking.vehicleId} ha expirado. El vehículo se ha bloqueado automáticamente.`,
       data: {
         bookingId: booking.id,
@@ -201,30 +198,35 @@ export class SendNotificationsUseCase {
   }
 
   private sendMultiMethodNotification(notification: any, preferences: any): Observable<boolean[]> {
-    const notifications = preferences.methods.map((method: string) =>
+    const notifications: Observable<boolean>[] = preferences.methods.map((method: string) =>
       this.notificationService.sendImmediateNotification({
         ...notification,
         deliveryMethod: method
       })
     );
 
+    if (notifications.length === 0) {
+      return of([]);
+    }
+
     return forkJoin(notifications);
+
   }
 
   private calculateExtensionOptions(remainingMinutes: number): any[] {
-    const baseRate = 0.50; // $0.50 per minute
-    const options = [15, 30, 60]; // Extension options in minutes
+    const baseRate = 0.50;
+    const options = [15, 30, 60];
 
     return options
-      .filter(minutes => minutes >= remainingMinutes) // Solo opciones mayores al tiempo restante
+      .filter(minutes => minutes >= remainingMinutes)
       .map(minutes => ({
         minutes,
         cost: minutes * baseRate
       }));
   }
-
   private generateNotificationId(): string {
-    return 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+    return 'notif-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    //                                                                    ^^^ slice() en lugar de substr()
   }
 
   private handleNotificationError(error: any): Observable<SendNotificationResponse> {

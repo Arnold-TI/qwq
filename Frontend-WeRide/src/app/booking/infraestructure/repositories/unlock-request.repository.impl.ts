@@ -75,12 +75,14 @@ export class UnlockRequestRepositoryImpl extends UnlockRequestRepository {
     );
   }
 
+  // ✅ MÉTODO PRINCIPAL CORREGIDO:
   markForRetry(requestId: string, nextRetryTime: Date): Observable<boolean> {
     return this.getUnlockRequestById(requestId).pipe(
       switchMap(request => {
-        const updatedRequest = {
+        // ✅ CORRECCIÓN: Mantener como Date, no convertir a string
+        const updatedRequest: UnlockRequest = {
           ...request,
-          nextRetryAt: nextRetryTime.toISOString(),
+          nextRetryAt: nextRetryTime, // ✅ Mantener como Date
           retryCount: request.retryCount + 1
         };
         return this.updateUnlockRequest(updatedRequest);
@@ -92,19 +94,20 @@ export class UnlockRequestRepositoryImpl extends UnlockRequestRepository {
     return this.getFailedUnlockRequests().pipe(
       map(requests => requests.filter(req => {
         if (!req.nextRetryAt) return false;
-        const retryTime = new Date(req.nextRetryAt);
+
+        let retryTime: Date;
+        retryTime = req.nextRetryAt;
+
         return retryTime <= new Date() && req.retryCount < req.maxRetries;
       }))
     );
   }
 
   validateQRCode(qrCode: string, vehicleId: string): Observable<boolean> {
-    // Simulación de validación - en producción sería una llamada al backend
     return of(qrCode.includes(vehicleId));
   }
 
   checkDistanceValidation(requestLocation: any, vehicleLocation: any): Observable<boolean> {
-    // Simulación de validación de distancia
     const distance = this.calculateDistance(requestLocation, vehicleLocation);
     return of(distance <= 50); // 50 metros máximo
   }
