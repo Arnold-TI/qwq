@@ -1,44 +1,249 @@
-<div class="booking-form-container">
-  <h2>Book Vehicle</h2>
-  <form (ngSubmit)="submitBooking()" #bookingForm="ngForm">
-    <div class="form-group">
-      <label for="vehicle">Electric Micromobility Vehicle</label>
-      <select id="vehicle" [(ngModel)]="selectedVehicle" name="vehicle" required>
-        <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
-          {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.type }}) - {{ vehicle.location }} - Battery: {{ vehicle.battery }} - Range: {{ vehicle.range }}
-        </option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="date">Date</label>
-      <input type="date" id="date" [(ngModel)]="selectedDate" name="date" required />
-    </div>
-    <div class="form-group">
-      <label for="time">Unlock Time</label>
-      <input type="time" id="time" [(ngModel)]="unlockTime" name="time" required />
-    </div>
-    <div class="form-group">
-      <label for="duration">Duration (minutes)</label>
-      <input type="number" id="duration" [(ngModel)]="duration" name="duration" min="1" required />
-    </div>
-    <button type="submit" class="btn-primary">Book Now</button>
-    <button type="button" class="btn-secondary" (click)="saveDraft()">Save as Draft</button>
-  </form>
-
-  <div class="booking-summary" *ngIf="showSummary">
-    <h3>Booking Summary</h3>
-    <p><strong>Vehicle:</strong> {{ getVehicleName(selectedVehicle) }}</p>
-    <p><strong>Type:</strong> {{ getVehicleType(selectedVehicle) }}</p>
-    <p><strong>Battery Level:</strong> {{ getVehicleBattery(selectedVehicle) }}</p>
-    <p><strong>Range:</strong> {{ getVehicleRange(selectedVehicle) }}</p>
-    <p><strong>Date and time:</strong> {{ selectedDate }} {{ unlockTime }}</p>
-    <p><strong>Duration:</strong> {{ duration }} minutes</p>
-    <p><strong>Rate:</strong> ${{ rate }}/minute</p>
-    <p><strong>Total:</strong> ${{ (duration * rate).toFixed(2) }}</p>
-    <div class="notifications">
-      <label><input type="checkbox" [(ngModel)]="smsReminder" name="smsReminder" /> SMS reminder 30 min before</label>
-      <label><input type="checkbox" [(ngModel)]="emailConfirmation" name="emailConfirmation" /> Email confirmation</label>
-      <label><input type="checkbox" [(ngModel)]="pushNotification" name="pushNotification" /> Push notification when unlocking</label>
-    </div>
+<div class="booking-container">
+  <!-- Header -->
+  <div class="booking-header">
+    <button class="btn-back" routerLink="/garage">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h2>Nueva Reserva</h2>
+    <div class="header-space"></div>
   </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando opciones disponibles...</p>
+  </div>
+
+  <!-- Confirmation State -->
+  <div *ngIf="showConfirmation" class="confirmation-container">
+    <div class="success-animation">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <h3>¡Reserva Creada Exitosamente!</h3>
+    <p>Tu reserva ha sido confirmada. Redirigiendo...</p>
+  </div>
+
+  <!-- Main Form -->
+  <form *ngIf="!isLoading && !showConfirmation" [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="booking-form">
+
+    <!-- Vehicle Selection -->
+    <div class="form-section">
+      <h3>
+        <i class="fas fa-motorcycle"></i>
+        Seleccionar Vehículo
+      </h3>
+
+      <div class="vehicle-grid">
+        <div
+          *ngFor="let vehicle of vehicles"
+          class="vehicle-card"
+          [class.selected]="bookingForm.get('vehicleId')?.value === vehicle.id"
+          (click)="bookingForm.patchValue({vehicleId: vehicle.id})">
+
+          <img [src]="vehicle.image" [alt]="vehicle.brand + ' ' + vehicle.model" class="vehicle-image">
+
+          <div class="vehicle-info">
+            <h4>{{ vehicle.brand }} {{ vehicle.model }}</h4>
+            <div class="vehicle-specs">
+              <span class="spec">
+                <i class="fas fa-battery-three-quarters"></i>
+                {{ vehicle.battery }}%
+              </span>
+              <span class="spec">
+                <i class="fas fa-dollar-sign"></i>
+                {{ vehicle.rate }}/min
+              </span>
+            </div>
+            <div class="vehicle-features">
+              <span *ngFor="let feature of vehicle.features" class="feature-tag">
+                {{ feature }}
+              </span>
+            </div>
+          </div>
+
+          <div class="selection-indicator" *ngIf="bookingForm.get('vehicleId')?.value === vehicle.id">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-error" *ngIf="isFieldInvalid('vehicleId')">
+        {{ getFieldError('vehicleId') }}
+      </div>
+    </div>
+
+    <!-- Location Selection -->
+    <div class="form-section">
+      <h3>
+        <i class="fas fa-map-marker-alt"></i>
+        Punto de Recojo
+      </h3>
+
+      <div class="location-grid">
+        <div
+          *ngFor="let location of locations"
+          class="location-card"
+          [class.selected]="bookingForm.get('locationId')?.value === location.id"
+          (click)="bookingForm.patchValue({locationId: location.id})">
+
+          <div class="location-info">
+            <h4>{{ location.name }}</h4>
+            <p class="location-address">{{ location.address }}</p>
+            <div class="location-stats">
+              <span class="vehicle-count">
+                <i class="fas fa-motorcycle"></i>
+                {{ location.vehicleCount }} disponibles
+              </span>
+            </div>
+          </div>
+
+          <div class="selection-indicator" *ngIf="bookingForm.get('locationId')?.value === location.id">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-error" *ngIf="isFieldInvalid('locationId')">
+        {{ getFieldError('locationId') }}
+      </div>
+    </div>
+
+    <!-- Date & Time -->
+    <div class="form-section">
+      <h3>
+        <i class="fas fa-calendar-clock"></i>
+        Fecha y Hora
+      </h3>
+
+      <div class="time-inputs">
+        <div class="input-group">
+          <label for="startTime">Hora de Inicio</label>
+          <input
+            type="datetime-local"
+            id="startTime"
+            formControlName="scheduledStartTime"
+            class="form-input"
+            [class.error]="isFieldInvalid('scheduledStartTime')">
+          <div class="field-error" *ngIf="isFieldInvalid('scheduledStartTime')">
+            {{ getFieldError('scheduledStartTime') }}
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="duration">Duración</label>
+          <div class="duration-input">
+            <input
+              type="number"
+              id="duration"
+              formControlName="durationMinutes"
+              min="15"
+              max="480"
+              class="form-input"
+              [class.error]="isFieldInvalid('durationMinutes')">
+            <span class="input-suffix">min</span>
+          </div>
+          <div class="duration-display">
+            {{ formatDuration(bookingForm.get('durationMinutes')?.value) }}
+          </div>
+          <div class="field-error" *ngIf="isFieldInvalid('durationMinutes')">
+            {{ getFieldError('durationMinutes') }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Preferences -->
+    <div class="form-section" formGroupName="notificationPreferences">
+      <h3>
+        <i class="fas fa-bell"></i>
+        Notificaciones
+      </h3>
+
+      <div class="notification-options">
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="startNotification">
+            <span class="checkmark"></span>
+            Notificar cuando inicie la reserva
+          </label>
+        </div>
+
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="endingNotification">
+            <span class="checkmark"></span>
+            Notificar antes de que termine
+          </label>
+        </div>
+
+        <div class="input-group" *ngIf="bookingForm.get('notificationPreferences.endingNotification')?.value">
+          <label for="advanceMinutes">Avisar con cuántos minutos de anticipación</label>
+          <select formControlName="advanceMinutes" class="form-select">
+            <option value="1">1 minuto</option>
+            <option value="5">5 minutos</option>
+            <option value="10">10 minutos</option>
+            <option value="15">15 minutos</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost Summary -->
+    <div class="cost-summary" *ngIf="estimatedCost > 0">
+      <div class="summary-header">
+        <h3>
+          <i class="fas fa-calculator"></i>
+          Resumen de Costos
+        </h3>
+      </div>
+
+      <div class="cost-breakdown">
+        <div class="cost-item">
+          <span>Duración:</span>
+          <span>{{ formatDuration(bookingForm.get('durationMinutes')?.value) }}</span>
+        </div>
+        <div class="cost-item">
+          <span>Tarifa:</span>
+          <span>${{ selectedVehicle?.rate || 0.50 }}/min</span>
+        </div>
+        <div class="cost-item total">
+          <span>Total Estimado:</span>
+          <span class="cost-amount">{{ formatCost(estimatedCost) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms & Conditions -->
+    <div class="form-section">
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="termsAccepted" required>
+          <span class="checkmark"></span>
+          Acepto los <a href="/terms" target="_blank">términos y condiciones</a>
+        </label>
+      </div>
+      <div class="field-error" *ngIf="isFieldInvalid('termsAccepted')">
+        Debes aceptar los términos y condiciones
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary btn-large"
+        [disabled]="bookingForm.invalid || isSubmitting">
+
+        <span *ngIf="!isSubmitting">
+          <i class="fas fa-check"></i>
+          Confirmar Reserva
+        </span>
+
+        <span *ngIf="isSubmitting">
+          <i class="fas fa-spinner fa-spin"></i>
+          Procesando...
+        </span>
+      </button>
+    </div>
+  </form>
 </div>

@@ -1,0 +1,196 @@
+<div class="timer-container" [ngClass]="'status-' + timerState.status">
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Cargando información de la reserva...</p>
+  </div>
+
+  <!-- Timer Display -->
+  <div class="timer-content" *ngIf="!isLoading">
+
+    <!-- Header -->
+    <div class="timer-header">
+      <h2 class="timer-title">Tu Reserva</h2>
+      <div class="booking-id">ID: {{ timerState.bookingId }}</div>
+    </div>
+
+    <!-- Main Timer Circle -->
+    <div class="timer-circle-container">
+      <svg class="timer-circle" width="200" height="200">
+        <!-- Background Circle -->
+        <circle
+          cx="100"
+          cy="100"
+          r="85"
+          fill="none"
+          stroke="#e5e7eb"
+          stroke-width="10">
+        </circle>
+
+        <!-- Progress Circle -->
+        <circle
+          cx="100"
+          cy="100"
+          r="85"
+          fill="none"
+          [attr.stroke]="getTimerColor()"
+          stroke-width="10"
+          stroke-linecap="round"
+          [attr.stroke-dasharray]="534.07"
+          [attr.stroke-dashoffset]="534.07 - (534.07 * getProgressPercentage() / 100)"
+          transform="rotate(-90 100 100)">
+        </circle>
+      </svg>
+
+      <!-- Time Display -->
+      <div class="timer-display">
+        <div class="time-text" [style.color]="getTimerColor()">
+          {{ getFormattedTime() }}
+        </div>
+        <div class="time-label">restante</div>
+      </div>
+    </div>
+
+    <!-- Status Message -->
+    <div class="status-message" *ngIf="warningMessage">
+      <i class="fas fa-exclamation-triangle"
+         [ngClass]="timerState.status === 'critical' ? 'critical' : 'warning'"></i>
+      {{ warningMessage }}
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" *ngIf="extensionMessage">
+      <i class="fas fa-check-circle"></i>
+      {{ extensionMessage }}
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Timer Actions -->
+    <div class="timer-actions" *ngIf="timerState.status !== 'expired'">
+
+      <!-- Extend Button -->
+      <button
+        class="action-button extend-button"
+        (click)="openExtensionModal()"
+        [disabled]="!timerState.canExtend || timerState.status === 'expired'">
+        <i class="fas fa-clock"></i>
+        Extender Tiempo
+      </button>
+
+      <!-- Secondary Actions -->
+      <div class="secondary-actions">
+        <button
+          class="action-button secondary"
+          (click)="viewBookingDetails()">
+          <i class="fas fa-info-circle"></i>
+          Detalles
+        </button>
+
+        <button
+          class="action-button secondary danger"
+          (click)="endReservationEarly()">
+          <i class="fas fa-stop-circle"></i>
+          Terminar Ahora
+        </button>
+      </div>
+    </div>
+
+    <!-- Expired State Actions -->
+    <div class="expired-actions" *ngIf="timerState.status === 'expired'">
+      <div class="expired-message">
+        <i class="fas fa-times-circle"></i>
+        <h3>Tu reserva ha expirado</h3>
+        <p>El vehículo se ha bloqueado automáticamente</p>
+      </div>
+
+      <button
+        class="action-button primary"
+        (click)="router.navigate(['/booking/booking-form'])">
+        <i class="fas fa-plus"></i>
+        Nueva Reserva
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Extension Modal -->
+  <div class="modal-overlay" *ngIf="showExtensionModal" (click)="closeExtensionModal()">
+    <div class="extension-modal" (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3>Extender Reserva</h3>
+        <button class="close-button" (click)="closeExtensionModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Extension Options -->
+      <div class="extension-options">
+        <div class="option-info">
+          <p>Selecciona cuánto tiempo adicional necesitas:</p>
+        </div>
+
+        <div class="options-grid">
+          <div
+            *ngFor="let option of extensionOptions"
+            class="extension-option"
+            [ngClass]="{ 'selected': selectedExtension === option }"
+            (click)="selectExtension(option)">
+
+            <div class="option-time">
+              <i class="fas fa-plus-circle"></i>
+              {{ option.label }}
+            </div>
+            <div class="option-cost">
+              +${{ option.cost.toFixed(2) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="modal-actions">
+        <button
+          class="action-button secondary"
+          (click)="closeExtensionModal()"
+          [disabled]="isExtending">
+          Cancelar
+        </button>
+
+        <button
+          class="action-button primary"
+          (click)="confirmExtension()"
+          [disabled]="!selectedExtension || isExtending">
+          <span *ngIf="!isExtending">
+            <i class="fas fa-check"></i>
+            Confirmar Extensión
+          </span>
+          <span *ngIf="isExtending">
+            <i class="fas fa-spinner fa-spin"></i>
+            Procesando...
+          </span>
+        </button>
+      </div>
+
+      <!-- Extension Error -->
+      <div class="modal-error" *ngIf="errorMessage && showExtensionModal">
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Extension Success -->
+      <div class="modal-success" *ngIf="extensionMessage && showExtensionModal">
+        <i class="fas fa-check-circle"></i>
+        {{ extensionMessage }}
+      </div>
+    </div>
+  </div>
+
+</div>

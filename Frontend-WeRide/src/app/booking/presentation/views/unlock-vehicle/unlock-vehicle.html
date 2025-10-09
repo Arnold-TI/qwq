@@ -1,1 +1,173 @@
+<div class="unlock-vehicle-container" [class]="unlockState.status">
+  <!-- Header -->
+  <div class="unlock-header">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h2>Desbloquear Vehículo</h2>
+    <div class="header-space"></div>
+  </div>
 
+  <!-- Vehicle Information -->
+  <div *ngIf="vehicleInfo && bookingInfo" class="vehicle-info-card">
+    <div class="vehicle-image">
+      <img [src]="vehicleInfo.image" [alt]="vehicleInfo.brand + ' ' + vehicleInfo.model">
+    </div>
+
+    <div class="vehicle-details">
+      <h3>{{ vehicleInfo.brand }} {{ vehicleInfo.model }}</h3>
+      <div class="vehicle-specs">
+        <div class="spec">
+          <i class="fas fa-battery-three-quarters"></i>
+          <span>{{ vehicleInfo.battery }}% batería</span>
+        </div>
+        <div class="spec">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>{{ vehicleInfo.location }}</span>
+        </div>
+      </div>
+
+      <div class="booking-info">
+        <div class="booking-time">
+          <i class="fas fa-clock"></i>
+          <span>{{ bookingInfo.scheduledStartTime | date:'HH:mm' }} - {{ bookingInfo.scheduledEndTime | date:'HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Unlock Interface -->
+  <div class="unlock-interface">
+
+    <!-- Status Display -->
+    <div class="status-display">
+      <div class="status-icon" [style.color]="getStatusColor()">
+        <i class="fas" [ngClass]="getStatusIcon()"></i>
+      </div>
+
+      <div class="status-content">
+        <h3 class="status-title">{{ getStatusTitle() }}</h3>
+        <p class="status-message">{{ unlockState.message }}</p>
+
+        <!-- Retry countdown -->
+        <div *ngIf="unlockState.estimatedRetryTime" class="retry-countdown">
+          {{ getRetryCountdown() }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="progress-steps" *ngIf="unlockState.status === 'unlocking'">
+      <div class="step active">
+        <div class="step-icon">
+          <i class="fas fa-wifi"></i>
+        </div>
+        <span>Conectando</span>
+      </div>
+      <div class="step-separator"></div>
+      <div class="step">
+        <div class="step-icon">
+          <i class="fas fa-unlock-alt"></i>
+        </div>
+        <span>Desbloqueando</span>
+      </div>
+      <div class="step-separator"></div>
+      <div class="step">
+        <div class="step-icon">
+          <i class="fas fa-check"></i>
+        </div>
+        <span>Completado</span>
+      </div>
+    </div>
+
+    <!-- Main Action Button -->
+    <div class="main-actions" *ngIf="unlockState.status === 'idle' || unlockState.status === 'failed'">
+      <button
+        class="btn btn-primary btn-large unlock-btn"
+        [disabled]="!bookingInfo || unlockState.status === 'unlocking'"
+        (click)="unlockVehicle()">
+
+        <span *ngIf="unlockState.status === 'idle'">
+          <i class="fas fa-unlock"></i>
+          Desbloquear Vehículo
+        </span>
+
+        <span *ngIf="unlockState.status === 'failed' && unlockState.canRetry">
+          <i class="fas fa-redo"></i>
+          Reintentar Desbloqueo
+        </span>
+      </button>
+    </div>
+
+    <!-- Success Actions -->
+    <div class="success-actions" *ngIf="unlockState.status === 'success'">
+      <div class="success-message">
+        <i class="fas fa-check-circle"></i>
+        <h3>¡Vehículo Desbloqueado!</h3>
+        <p>Ya puedes comenzar tu viaje</p>
+      </div>
+
+      <button class="btn btn-primary" (click)="goToUnlockStatus()">
+        <i class="fas fa-eye"></i>
+        Ver Estado del Vehículo
+      </button>
+    </div>
+
+    <!-- Error Actions -->
+    <div class="error-actions" *ngIf="unlockState.status === 'failed'">
+      <div class="error-details">
+        <div class="error-info">
+          <i class="fas fa-info-circle"></i>
+          <span>Intento {{ unlockState.retryCount }} de 3</span>
+        </div>
+      </div>
+
+      <div class="alternative-actions">
+        <button
+          *ngIf="unlockState.canRetry"
+          class="btn btn-secondary"
+          (click)="retryUnlock()">
+          <i class="fas fa-redo"></i>
+          Reintentar
+        </button>
+
+        <button class="btn btn-outline-primary" (click)="goToQRScanner()">
+          <i class="fas fa-qrcode"></i>
+          Escanear QR
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Alternative Methods -->
+  <div class="alternative-methods" *ngIf="unlockState.status === 'idle'">
+    <div class="divider">
+      <span>o también puedes</span>
+    </div>
+
+    <button class="btn btn-outline-secondary" (click)="goToQRScanner()">
+      <i class="fas fa-qrcode"></i>
+      Escanear Código QR
+    </button>
+  </div>
+
+  <!-- Help Section -->
+  <div class="help-section">
+    <h4>¿Problemas para desbloquear?</h4>
+    <div class="help-tips">
+      <div class="tip">
+        <i class="fas fa-wifi"></i>
+        <span>Verifica tu conexión a internet</span>
+      </div>
+      <div class="tip">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Asegúrate de estar cerca del vehículo</span>
+      </div>
+      <div class="tip">
+        <i class="fas fa-battery-full"></i>
+        <span>El vehículo debe tener batería suficiente</span>
+      </div>
+    </div>
+  </div>
+</div>

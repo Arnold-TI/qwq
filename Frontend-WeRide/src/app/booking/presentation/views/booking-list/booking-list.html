@@ -1,50 +1,228 @@
-<div class="booking-container">
-  <div class="header">
-    <h1>My Bookings</h1>
-    <button class="btn-primary" routerLink="/booking/form">
-      <mat-icon>add</mat-icon>
-      New Booking
+<div class="booking-list-container">
+  <!-- Header -->
+  <div class="list-header">
+    <h2>Mis Reservas</h2>
+    <button class="btn btn-primary" (click)="createNewBooking()">
+      <i class="fas fa-plus"></i>
+      Nueva Reserva
     </button>
   </div>
 
-  <div class="bookings-grid">
-    <div class="booking-card" *ngFor="let booking of bookings">
-      <div class="booking-header">
-        <h3>{{ booking.vehicle }}</h3>
-        <span class="status" [class]="booking.status">{{ booking.status }}</span>
-      </div>
-      <div class="booking-details">
-        <div class="detail">
-          <mat-icon>location_on</mat-icon>
-          <span>{{ booking.location }}</span>
+  <!-- Quick Actions -->
+  <div class="quick-actions" *ngIf="activeBooking">
+    <div class="active-booking-banner">
+      <div class="banner-content">
+        <div class="booking-info">
+          <h3>Reserva Activa</h3>
+          <p>{{ activeBooking.vehicleBrand }} {{ activeBooking.vehicleModel }}</p>
         </div>
-        <div class="detail">
-          <mat-icon>schedule</mat-icon>
-          <span>{{ booking.date }} - {{ booking.time }}</span>
+
+        <!-- Timer Display - US-16, US-18 -->
+        <div class="timer-display" *ngIf="activeBooking.timer">
+          <div class="timer-circle" [style.border-color]="getTimerColor(activeBooking.timer.status)">
+            <div class="timer-text" [style.color]="getTimerColor(activeBooking.timer.status)">
+              {{ formatTime(activeBooking.timer.remainingMinutes, activeBooking.timer.remainingSeconds) }}
+            </div>
+          </div>
+
+          <div class="timer-info">
+            <div class="timer-status" [class]="activeBooking.timer.status">
+              <span *ngIf="activeBooking.timer.status === 'critical'" class="status-critical">
+                <i class="fas fa-exclamation-triangle"></i>
+                ¡Termina pronto!
+              </span>
+              <span *ngIf="activeBooking.timer.status === 'warning'" class="status-warning">
+                <i class="fas fa-clock"></i>
+                Termina en {{ activeBooking.timer.remainingMinutes }} min
+              </span>
+              <span *ngIf="activeBooking.timer.status === 'active'" class="status-active">
+                <i class="fas fa-play-circle"></i>
+                En progreso
+              </span>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="progress-bar">
+              <div class="progress-fill"
+                   [style.width.%]="getTimerProgress(activeBooking)"
+                   [style.background-color]="getTimerColor(activeBooking.timer.status)">
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="detail">
-          <mat-icon>access_time</mat-icon>
-          <span>{{ booking.duration }} minutes</span>
+
+        <!-- Quick Actions -->
+        <div class="banner-actions">
+          <button class="btn btn-outline-white" (click)="unlockVehicle(activeBooking)">
+            <i class="fas fa-unlock"></i>
+            Desbloquear
+          </button>
+
+          <button class="btn btn-outline-white" (click)="scanQR()">
+            <i class="fas fa-qrcode"></i>
+            QR
+          </button>
+
+          <button
+            *ngIf="activeBooking.timer?.canExtend && activeBooking.timer.status !== 'expired'"
+            class="btn btn-white"
+            (click)="openExtensionModal(activeBooking)">
+            <i class="fas fa-plus-circle"></i>
+            Extender
+          </button>
         </div>
-        <div class="detail">
-          <mat-icon>attach_money</mat-icon>
-          <span>${{ booking.total.toFixed(2) }}</span>
-        </div>
-      </div>
-      <div class="booking-actions">
-        <button class="btn-secondary" (click)="editBooking(booking.id)">Edit</button>
-        <button class="btn-danger" (click)="cancelBooking(booking.id)">Cancel</button>
       </div>
     </div>
   </div>
 
-  <div class="empty-state" *ngIf="bookings.length === 0">
-    <mat-icon>book_online</mat-icon>
-    <h2>No bookings yet</h2>
-    <p>Create your first booking to start using WeRide</p>
-    <button class="btn-primary" routerLink="/booking/form">
-      <mat-icon>add</mat-icon>
-      Create Booking
-    </button>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando tus reservas...</p>
+  </div>
+
+  <!-- Bookings List -->
+  <div *ngIf="!isLoading" class="bookings-grid">
+    <div
+      *ngFor="let booking of bookings"
+      class="booking-card"
+      [class.active]="booking.status === 'active'"
+      [class.expired]="booking.status === 'expired'"
+      (click)="viewBookingDetails(booking)">
+
+      <!-- Booking Header -->
+      <div class="booking-header">
+        <div class="vehicle-info">
+          <h3>{{ booking.vehicleBrand }} {{ booking.vehicleModel }}</h3>
+          <p class="location">
+            <i class="fas fa-map-marker-alt"></i>
+            {{ booking.location }}
+          </p>
+        </div>
+
+        <div class="booking-status" [class]="booking.status">
+          <span class="status-badge">{{ booking.status | titlecase }}</span>
+        </div>
+      </div>
+
+      <!-- Booking Time Info -->
+      <div class="booking-times">
+        <div class="time-item">
+          <span class="time-label">Inicio</span>
+          <span class="time-value">{{ booking.scheduledStartTime | date:'HH:mm' }}</span>
+        </div>
+        <div class="time-separator">-</div>
+        <div class="time-item">
+          <span class="time-label">Fin</span>
+          <span class="time-value">{{ booking.scheduledEndTime | date:'HH:mm' }}</span>
+        </div>
+      </div>
+
+      <!-- Timer Section (solo para reservas activas) -->
+      <div *ngIf="booking.timer && booking.status === 'active'" class="booking-timer">
+        <div class="timer-compact">
+          <div class="timer-icon" [style.color]="getTimerColor(booking.timer.status)">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="timer-text-compact">
+            <span class="remaining-time" [style.color]="getTimerColor(booking.timer.status)">
+              {{ formatTime(booking.timer.remainingMinutes, booking.timer.remainingSeconds) }}
+            </span>
+            <span class="timer-label">restante</span>
+          </div>
+        </div>
+
+        <div class="timer-progress-mini">
+          <div class="progress-mini-bar">
+            <div class="progress-mini-fill"
+                 [style.width.%]="getTimerProgress(booking)"
+                 [style.background-color]="getTimerColor(booking.timer.status)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Actions -->
+      <div class="booking-actions" *ngIf="booking.status === 'active'">
+        <button class="action-btn secondary" (click)="unlockVehicle(booking); $event.stopPropagation()">
+          <i class="fas fa-unlock"></i>
+          Desbloquear
+        </button>
+
+        <button
+          *ngIf="booking.timer?.canExtend"
+          class="action-btn primary"
+          (click)="openExtensionModal(booking); $event.stopPropagation()">
+          <i class="fas fa-plus"></i>
+          Extender
+        </button>
+      </div>
+
+      <!-- Booking Summary -->
+      <div class="booking-summary">
+        <div class="cost-info">
+          <span class="cost-label">Costo estimado:</span>
+          <span class="cost-amount">${{ booking.estimatedCost.toFixed(2) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="bookings.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-calendar-plus"></i>
+      </div>
+      <h3>No tienes reservas</h3>
+      <p>Crea tu primera reserva para empezar a usar WeRide</p>
+      <button class="btn btn-primary" (click)="createNewBooking()">
+        <i class="fas fa-plus"></i>
+        Crear Primera Reserva
+      </button>
+    </div>
+  </div>
+
+  <!-- Extension Modal - US-16 -->
+  <div *ngIf="showExtensionModal" class="modal-overlay" (click)="showExtensionModal = false">
+    <div class="extension-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Extender Reserva</h3>
+        <button class="close-btn" (click)="showExtensionModal = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-content" *ngIf="selectedBookingForExtension">
+        <div class="current-booking-info">
+          <p>
+            <strong>{{ selectedBookingForExtension.vehicleBrand }} {{ selectedBookingForExtension.vehicleModel }}</strong>
+          </p>
+          <p class="current-time" *ngIf="selectedBookingForExtension.timer">
+            Tiempo restante:
+            <span [style.color]="getTimerColor(selectedBookingForExtension.timer.status)">
+              {{ formatTime(selectedBookingForExtension.timer.remainingMinutes, selectedBookingForExtension.timer.remainingSeconds) }}
+            </span>
+          </p>
+        </div>
+
+        <div class="extension-options">
+          <p class="options-title">¿Cuánto tiempo adicional necesitas?</p>
+
+          <div class="options-grid">
+            <button
+              *ngFor="let option of extensionOptions"
+              class="extension-option"
+              (click)="extendBooking(option.minutes, option.cost)">
+              <div class="option-time">
+                <i class="fas fa-plus-circle"></i>
+                {{ option.label }}
+              </div>
+              <div class="option-cost">
+                +${{ option.cost.toFixed(2) }}
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

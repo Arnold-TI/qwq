@@ -1,0 +1,135 @@
+<div class="qr-scanner-container">
+  <!-- Header -->
+  <div class="scanner-header">
+    <button class="back-button" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+      <span>Volver</span>
+    </button>
+    <h1 class="scanner-title">Escanear QR</h1>
+  </div>
+
+  <!-- Scanner Area -->
+  <div class="scanner-area" [ngClass]="'status-' + unlockStatus">
+
+    <!-- Video Stream -->
+    <div class="video-container" *ngIf="isScanning">
+      <video #video autoplay playsinline muted></video>
+      <canvas #canvas style="display: none;"></canvas>
+
+      <!-- Scanner Overlay -->
+      <div class="scanner-overlay">
+        <div class="scanner-frame">
+          <div class="corner top-left"></div>
+          <div class="corner top-right"></div>
+          <div class="corner bottom-left"></div>
+          <div class="corner bottom-right"></div>
+        </div>
+        <p class="scan-instruction">Apunta la cámara al código QR del vehículo</p>
+      </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div class="status-container" *ngIf="!isScanning">
+
+      <!-- Idle State -->
+      <div class="status-content" *ngIf="unlockStatus === 'idle'">
+        <i class="status-icon fas fa-qrcode"></i>
+        <h2>Desbloquear con QR</h2>
+        <p>Escanea el código QR en el vehículo para desbloquearlo</p>
+
+        <button
+          class="scan-button primary"
+          (click)="startScanning()"
+          [disabled]="!hasCamera">
+          <i class="fas fa-camera"></i>
+          Iniciar Escaneo
+        </button>
+
+        <div class="camera-warning" *ngIf="!hasCamera">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Cámara no disponible</span>
+        </div>
+      </div>
+
+      <!-- Processing State -->
+      <div class="status-content" *ngIf="unlockStatus === 'processing'">
+        <div class="loading-spinner"></div>
+        <h2>Procesando...</h2>
+        <p>Validando código QR y desbloqueando vehículo</p>
+      </div>
+
+      <!-- Success State -->
+      <div class="status-content success" *ngIf="unlockStatus === 'success'">
+        <i class="status-icon fas fa-check-circle success"></i>
+        <h2>¡Éxito!</h2>
+        <p>{{ scanResult }}</p>
+        <div class="success-animation">
+          <i class="fas fa-unlock-alt"></i>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div class="status-content error" *ngIf="unlockStatus === 'error'">
+        <i class="status-icon fas fa-exclamation-circle error"></i>
+        <h2>Error</h2>
+        <p>{{ errorMessage }}</p>
+
+        <div class="error-actions">
+          <button class="scan-button secondary" (click)="retryScanning()">
+            <i class="fas fa-redo"></i>
+            Reintentar
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Manual Input (for testing) -->
+  <div class="manual-input-section" *ngIf="unlockStatus === 'idle'">
+    <div class="manual-input-toggle" (click)="showManualInput = !showManualInput">
+      <span>Entrada manual (testing)</span>
+      <i class="fas" [ngClass]="showManualInput ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+    </div>
+
+    <div class="manual-input-form" *ngIf="showManualInput">
+      <input
+        #qrInput
+        type="text"
+        placeholder="weride://unlock/vehicle-id/booking-id?..."
+        class="manual-qr-input">
+      <button
+        class="scan-button secondary"
+        (click)="processManualQR(qrInput.value)">
+        Procesar QR
+      </button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="scanner-controls" *ngIf="isScanning">
+    <button class="control-button" (click)="stopScanning()">
+      <i class="fas fa-stop"></i>
+      Detener
+    </button>
+  </div>
+
+  <!-- Help Section -->
+  <div class="help-section">
+    <h3>¿Cómo usar?</h3>
+    <div class="help-steps">
+      <div class="help-step">
+        <span class="step-number">1</span>
+        <span>Encuentra el código QR en el vehículo</span>
+      </div>
+      <div class="help-step">
+        <span class="step-number">2</span>
+        <span>Apunta la cámara al código QR</span>
+      </div>
+      <div class="help-step">
+        <span class="step-number">3</span>
+        <span>Espera a que se procese automáticamente</span>
+      </div>
+    </div>
+  </div>
+</div>

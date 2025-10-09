@@ -1,62 +1,222 @@
-<div class="main-layout">
-  <div class="content expanded full-width">
-    <h2>Vehicle Unlock Status</h2>
-    <p>Monitor your vehicle's unlock status in real-time</p>
-    <div class="status-card">
-      <div class="status-header">
-        <h3>Current Status</h3>
-        <button class="refresh-btn" (click)="refreshStatus()">
-          <mat-icon>refresh</mat-icon>
-          Refresh
+<div class="unlock-status-container">
+  <!-- Header -->
+  <div class="status-header">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h2>Estado de Desbloqueo</h2>
+    <button class="btn-refresh" (click)="toggleAutoRefresh()" [class.active]="autoRefresh">
+      <i class="fas" [ngClass]="autoRefresh ? 'fa-pause' : 'fa-play'"></i>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner-large"></div>
+    <p>Obteniendo estado del desbloqueo...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <div class="error-icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h3>Error al cargar estado</h3>
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadUnlockStatus()">
+      <i class="fas fa-redo"></i>
+      Reintentar
+    </button>
+  </div>
+
+  <!-- Main Status Display -->
+  <div *ngIf="statusDetail && !isLoading" class="status-main">
+
+    <!-- Status Overview -->
+    <div class="status-overview" [class]="statusDetail.status">
+      <div class="status-icon-large" [style.color]="getStatusColor()">
+        <i class="fas" [ngClass]="getStatusIcon()"></i>
+      </div>
+
+      <div class="status-info">
+        <h3 class="status-title">{{ statusDetail.message }}</h3>
+        <p class="status-subtitle">{{ getStatusSubtitle() }}</p>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" *ngIf="statusDetail.status === 'processing' || statusDetail.status === 'pending'">
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="statusDetail.progress"
+              [style.background-color]="getProgressBarColor()">
+            </div>
+          </div>
+          <div class="progress-text">{{ statusDetail.progress }}%</div>
+        </div>
+
+        <!-- Estimated Time -->
+        <div class="estimated-time" *ngIf="statusDetail.estimatedTimeRemaining">
+          <i class="fas fa-clock"></i>
+          <span>Tiempo estimado: {{ formatEstimatedTime() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle Status -->
+    <div class="vehicle-status-card" *ngIf="statusDetail.vehicleStatus">
+      <h4>
+        <i class="fas fa-motorcycle"></i>
+        Estado del Vehículo
+      </h4>
+
+      <div class="vehicle-status-grid">
+        <div class="status-item">
+          <div class="status-item-header">
+            <i class="fas fa-lock" *ngIf="statusDetail.vehicleStatus.isLocked"></i>
+            <i class="fas fa-unlock" *ngIf="!statusDetail.vehicleStatus.isLocked"></i>
+            <span>Estado de Bloqueo</span>
+          </div>
+          <div class="status-item-value" [class.success]="!statusDetail.vehicleStatus.isLocked">
+            {{ statusDetail.vehicleStatus.isLocked ? 'Bloqueado' : 'Desbloqueado' }}
+          </div>
+        </div>
+
+        <div class="status-item">
+          <div class="status-item-header">
+            <i class="fas" [ngClass]="getBatteryIcon()" [style.color]="getBatteryColor()"></i>
+            <span>Batería</span>
+          </div>
+          <div class="status-item-value">
+            {{ statusDetail.vehicleStatus.batteryLevel }}%
+          </div>
+        </div>
+
+        <div class="status-item">
+          <div class="status-item-header">
+            <i class="fas" [ngClass]="getConnectionStatusIcon()"></i>
+            <span>Conexión</span>
+          </div>
+          <div class="status-item-value">
+            {{ statusDetail.vehicleStatus.connectionStatus | titlecase }}
+          </div>
+        </div>
+
+        <div class="status-item" *ngIf="statusDetail.vehicleStatus.lastActivity">
+          <div class="status-item-header">
+            <i class="fas fa-history"></i>
+            <span>Última Actividad</span>
+          </div>
+          <div class="status-item-value">
+            {{ statusDetail.vehicleStatus.lastActivity | date:'HH:mm:ss' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Request Details -->
+    <div class="request-details-card">
+      <div class="details-header" (click)="toggleDetails()">
+        <h4>
+          <i class="fas fa-info-circle"></i>
+          Detalles de la Solicitud
+        </h4>
+        <i class="fas" [ngClass]="showDetails ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+      </div>
+
+      <div class="details-content" *ngIf="showDetails">
+        <div class="detail-item">
+          <span class="detail-label">ID de Solicitud:</span>
+          <span class="detail-value code">{{ statusDetail.unlockRequestId }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Intentos:</span>
+          <span class="detail-value">{{ statusDetail.retryCount }} / {{ statusDetail.maxRetries }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Última Actualización:</span>
+          <span class="detail-value">{{ statusDetail.lastUpdated | date:'HH:mm:ss' }}</span>
+        </div>
+
+        <!-- Attempt History -->
+        <div class="attempt-history" *ngIf="statusDetail.attemptHistory.length > 0">
+          <h5>Historial de Intentos</h5>
+          <div class="attempts-list">
+            <div
+              *ngFor="let attempt of statusDetail.attemptHistory"
+              class="attempt-item"
+              [class]="attempt.status">
+              <div class="attempt-info">
+                <span class="attempt-number">#{{ attempt.attempt }}</span>
+                <span class="attempt-time">{{ attempt.timestamp | date:'HH:mm:ss' }}</span>
+              </div>
+              <div class="attempt-status">
+                <i class="fas" [ngClass]="getAttemptIcon(attempt.status)"></i>
+                <span>{{ attempt.status | titlecase }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="status-actions">
+      <!-- Success Actions -->
+      <div *ngIf="statusDetail.status === 'success'" class="success-actions">
+        <div class="success-message">
+          <i class="fas fa-check-circle"></i>
+          <h3>¡Vehículo Desbloqueado!</h3>
+          <p>Tu vehículo está listo para usar</p>
+        </div>
+
+        <button class="btn btn-primary btn-large" (click)="goToBookings()">
+          <i class="fas fa-list"></i>
+          Ver Mis Reservas
         </button>
       </div>
-      <div class="status-section">
-        <div class="status-display">
-          <div class="status-indicator unlocked">
-            <span>Unlocked</span>
-            <span class="user-label">Tu</span>
-          </div>
-        </div>
-        <div class="vehicle-characteristics-row">
-          <span class="scooter-icon-bg">
-            <span class="iconify" data-icon="mdi:scooter" style="font-size:48px;color:#fff;"></span>
-          </span>
-          <div class="vehicle-characteristics">
-            <span class="characteristic-item"><strong>ID vehículo:</strong> {{ vehicleInfo.id }}</span>
-            <span class="characteristic-item"><strong>Batería:</strong> {{ vehicleInfo.battery }}%</span>
-            <span class="characteristic-item"><strong>Marca:</strong> {{ vehicleInfo.brand }}</span>
-          </div>
-        </div>
+
+      <!-- Retry Actions -->
+      <div *ngIf="showRetryButton" class="retry-actions">
+        <p class="retry-message">
+          El desbloqueo falló. Puedes intentar nuevamente.
+        </p>
+
+        <button class="btn btn-primary" (click)="retryUnlock()">
+          <i class="fas fa-redo"></i>
+          Reintentar Desbloqueo
+        </button>
       </div>
-      <div class="actions-section">
-        <div class="action-buttons">
-          <button class="btn-lock" (click)="lockVehicle()" [disabled]="unlockStatus === 'Locked'">
-            <mat-icon>lock</mat-icon>
-            Lock Vehicle
-          </button>
-          <button class="btn-unlock" (click)="unlockVehicle()" [disabled]="unlockStatus === 'Unlocked'">
-            <mat-icon>lock_open</mat-icon>
-            Unlock Vehicle
-          </button>
-        </div>
+
+      <!-- Processing Actions -->
+      <div *ngIf="statusDetail.status === 'processing' || statusDetail.status === 'pending'" class="processing-actions">
+        <p class="processing-message">
+          <i class="fas fa-info-circle"></i>
+          El proceso de desbloqueo está en curso. Por favor espera...
+        </p>
       </div>
-    </div>
-    <div class="recent-activity">
-      <h3>Recent Activity</h3>
-      <ul>
-        <li *ngFor="let activity of recentActivity">
-          <span>{{ activity.message }}</span>
-          <span class="timestamp">{{ activity.time }}</span>
-        </li>
-      </ul>
-    </div>
-    <div class="footer">
-      <p>© 2025 Vehicle Control System. All rights reserved.</p>
-      <div class="footer-links">
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
-        <a href="#">Support</a>
+
+      <!-- Failed Actions -->
+      <div *ngIf="statusDetail.status === 'failed' && !statusDetail.canRetry" class="failed-actions">
+        <div class="failed-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Desbloqueo Fallido</h3>
+          <p>Se agotaron los intentos. Contacta soporte si persiste el problema.</p>
+        </div>
+
+        <button class="btn btn-outline-primary" (click)="goToBookings()">
+          <i class="fas fa-arrow-left"></i>
+          Volver a Reservas
+        </button>
       </div>
     </div>
+
+  </div>
+
+  <!-- Auto-refresh indicator -->
+  <div class="auto-refresh-indicator" *ngIf="autoRefresh && !isStatusFinal(statusDetail?.status || '')">
+    <div class="refresh-pulse"></div>
+    <span>Actualizando automáticamente...</span>
   </div>
 </div>

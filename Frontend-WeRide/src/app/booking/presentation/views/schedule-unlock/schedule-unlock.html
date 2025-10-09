@@ -1,55 +1,245 @@
-<div class="content">
-  <h2>Schedule Unlock</h2>
+<div class="schedule-unlock-container">
+  <!-- Header -->
+  <div class="schedule-header">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h2>Programar Desbloqueo</h2>
+    <div class="header-space"></div>
+  </div>
 
-  <div class="schedule-card">
-    <div class="vehicle-info">
-      <div class="vehicle-icon">🛴</div>
-      <div class="vehicle-details">
-        <h3>{{ selectedVehicle?.brand }} {{ selectedVehicle?.model }}</h3>
-        <p>{{ selectedVehicle?.location }}</p>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando información de la reserva...</p>
+  </div>
+
+  <!-- Confirmation State -->
+  <div *ngIf="showConfirmation && scheduledUnlock" class="confirmation-container">
+    <div class="success-animation">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <h3>¡Desbloqueo Programado!</h3>
+    <div class="confirmation-details">
+      <p>Tu vehículo se desbloqueará automáticamente:</p>
+      <div class="scheduled-time">
+        <i class="fas fa-calendar-alt"></i>
+        {{ getSelectedSlotInfo() }}
+      </div>
+      <div class="notification-info" *ngIf="scheduledUnlock.notificationScheduled">
+        <i class="fas fa-bell"></i>
+        Te notificaremos {{ scheduleForm.get('notifyMinutesBefore')?.value }} minutos antes
+      </div>
+    </div>
+    <p class="redirect-message">Redirigiendo al estado del desbloqueo...</p>
+  </div>
+
+  <!-- Main Form -->
+  <form *ngIf="!isLoading && !showConfirmation" [formGroup]="scheduleForm" (ngSubmit)="onSubmit()" class="schedule-form">
+
+    <!-- Vehicle Information -->
+    <div *ngIf="vehicleInfo && bookingInfo" class="vehicle-info-section">
+      <div class="vehicle-card-compact">
+        <img [src]="vehicleInfo.image" [alt]="vehicleInfo.brand + ' ' + vehicleInfo.model" class="vehicle-image-small">
+        <div class="vehicle-details-compact">
+          <h4>{{ vehicleInfo.brand }} {{ vehicleInfo.model }}</h4>
+          <div class="vehicle-stats">
+            <span class="stat">
+              <i class="fas fa-battery-three-quarters"></i>
+              {{ vehicleInfo.battery }}%
+            </span>
+            <span class="stat">
+              <i class="fas fa-map-marker-alt"></i>
+              {{ vehicleInfo.location }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <label>Select Date</label>
-    <input type="date" [(ngModel)]="selectedDate" name="date" required>
+    <!-- Date Selection -->
+    <div class="form-section">
+      <h3>
+        <i class="fas fa-calendar"></i>
+        Fecha
+      </h3>
 
-    <label>Unlock Time</label>
-    <input type="time" [(ngModel)]="unlockTime" name="time" required>
+      <div class="date-input-group">
+        <input
+          type="date"
+          formControlName="scheduledDate"
+          class="form-input date-input"
+          [class.error]="isFieldInvalid('scheduledDate')"
+          [min]="formatDateForInput(new Date())"
+          [max]="formatDateForInput(new Date(Date.now() + 24 * 60 * 60 * 1000))">
 
-    <label>Duration (hours)</label>
-    <select [(ngModel)]="duration" name="duration" required>
-      <option *ngFor="let d of [1,2,3,4,5,6]" [value]="d">{{ d }} hour{{ d > 1 ? 's' : '' }}</option>
-    </select>
+        <div class="field-error" *ngIf="isFieldInvalid('scheduledDate')">
+          {{ getFieldError('scheduledDate') }}
+        </div>
+      </div>
+    </div>
 
-    <div class="summary" *ngIf="selectedVehicle">
-      <h3>Booking Summary</h3>
+    <!-- Time Selection -->
+    <div class="form-section">
+      <h3>
+        <i class="fas fa-clock"></i>
+        Hora de Desbloqueo
+      </h3>
+
+      <!-- Time Slots Grid -->
+      <div class="time-slots-container" *ngIf="availableTimeSlots.length > 0">
+        <div class="time-slots-grid">
+          <button
+            *ngFor="let slot of availableTimeSlots"
+            type="button"
+            class="time-slot"
+            [class.selected]="selectedTimeSlot === slot"
+            [class.recommended]="slot.recommended"
+            [disabled]="!slot.available"
+            (click)="selectTimeSlot(slot)">
+
+            <div class="slot-time">{{ slot.label }}</div>
+            <div class="slot-indicator" *ngIf="slot.recommended">
+              <i class="fas fa-star"></i>
+              <span>Recomendado</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Manual Time Input -->
+        <div class="manual-time-section">
+          <div class="divider">
+            <span>o selecciona una hora específica</span>
+          </div>
+
+          <input
+            type="time"
+            formControlName="scheduledTime"
+            class="form-input time-input"
+            [class.error]="isFieldInvalid('scheduledTime')">
+
+          <div class="field-error" *ngIf="isFieldInvalid('scheduledTime')">
+            {{ getFieldError('scheduledTime') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- No slots available -->
+      <div *ngIf="availableTimeSlots.length === 0" class="no-slots-message">
+        <i class="fas fa-info-circle"></i>
+        <p>No hay horarios disponibles para la fecha seleccionada</p>
+      </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="form-section">
+      <h3>
+        <i class="fas fa-bell"></i>
+        Configuración de Notificaciones
+      </h3>
+
+      <div class="notification-settings">
+        <div class="setting-row">
+          <label for="notifyBefore">Notificar antes:</label>
+          <select formControlName="notifyMinutesBefore" class="form-select" id="notifyBefore">
+            <option *ngFor="let minutes of notificationMinutesBefore" [value]="minutes">
+              {{ minutes }} minutos antes
+            </option>
+          </select>
+        </div>
+
+        <div class="setting-row checkbox-setting">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="autoUnlock">
+            <span class="checkmark"></span>
+            <div class="setting-info">
+              <span class="setting-title">Desbloqueo automático</span>
+              <span class="setting-description">El vehículo se desbloqueará automáticamente a la hora programada</span>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schedule Summary -->
+    <div class="schedule-summary" *ngIf="selectedTimeSlot || scheduleForm.get('scheduledTime')?.value">
+      <h3>
+        <i class="fas fa-calendar-check"></i>
+        Resumen de Programación
+      </h3>
+
       <div class="summary-content">
-        <div class="summary-row">
-          <span class="label">Vehicle:</span>
-          <span class="value">{{ selectedVehicle.brand }} {{ selectedVehicle.model }}</span>
+        <div class="summary-item">
+          <span class="summary-label">Fecha y Hora:</span>
+          <span class="summary-value">{{ getSelectedSlotInfo() }}</span>
         </div>
-        <div class="summary-row">
-          <span class="label">Date & Time:</span>
-          <span class="value">{{ formatDateTime() }}</span>
+
+        <div class="summary-item">
+          <span class="summary-label">Notificación:</span>
+          <span class="summary-value">
+            {{ scheduleForm.get('notifyMinutesBefore')?.value }} minutos antes
+          </span>
         </div>
-        <div class="summary-row">
-          <span class="label">Duration:</span>
-          <span class="value">{{ duration }} hour{{ duration > 1 ? 's' : '' }}</span>
-        </div>
-        <div class="summary-row">
-          <span class="label">Rate:</span>
-          <span class="value">${{ selectedVehicle.rate }}/minute</span>
-        </div>
-        <div class="summary-row total-row">
-          <span class="label">Total:</span>
-          <span class="value total">${{ calculateTotal() }}</span>
+
+        <div class="summary-item">
+          <span class="summary-label">Desbloqueo:</span>
+          <span class="summary-value">
+            {{ scheduleForm.get('autoUnlock')?.value ? 'Automático' : 'Manual' }}
+          </span>
         </div>
       </div>
     </div>
 
-    <div class="actions">
-      <button type="button" class="schedule" (click)="scheduleUnlock()">Schedule Unlock</button>
-      <button type="button" class="draft" (click)="saveDraft()">Save as Draft</button>
+    <!-- Terms & Confirmation -->
+    <div class="form-section">
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="confirmSchedule" required>
+          <span class="checkmark"></span>
+          Confirmo que quiero programar el desbloqueo para la fecha y hora seleccionadas
+        </label>
+      </div>
+      <div class="field-error" *ngIf="isFieldInvalid('confirmSchedule')">
+        Debes confirmar la programación del desbloqueo
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary btn-large"
+        [disabled]="scheduleForm.invalid || isSubmitting || !selectedTimeSlot">
+
+        <span *ngIf="!isSubmitting">
+          <i class="fas fa-calendar-plus"></i>
+          Programar Desbloqueo
+        </span>
+
+        <span *ngIf="isSubmitting">
+          <i class="fas fa-spinner fa-spin"></i>
+          Programando...
+        </span>
+      </button>
+    </div>
+  </form>
+
+  <!-- Help Section -->
+  <div class="help-section" *ngIf="!showConfirmation">
+    <h4>¿Cómo funciona?</h4>
+    <div class="help-steps">
+      <div class="help-step">
+        <span class="step-number">1</span>
+        <span>Selecciona la fecha y hora para el desbloqueo</span>
+      </div>
+      <div class="help-step">
+        <span class="step-number">2</span>
+        <span>Configura las notificaciones según tus preferencias</span>
+      </div>
+      <div class="help-step">
+        <span class="step-number">3</span>
+        <span>El vehículo se desbloqueará automáticamente a la hora programada</span>
+      </div>
     </div>
   </div>
 </div>

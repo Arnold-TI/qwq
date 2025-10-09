@@ -1,130 +1,780 @@
-.content {
-  padding: 2rem;
-}
-
-.schedule-card {
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.vehicle-info {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 1rem;
-}
-
-.vehicle-icon {
-  background-color: #7c3aed;
+.schedule-unlock-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
   color: white;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
+}
+
+/* Header */
+.schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-top: 1rem;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.vehicle-details h3 {
-  margin: 0 0 4px 0;
-  color: #111827;
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.schedule-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.header-space {
+  width: 44px;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-left: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
   font-size: 1.1rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* Confirmation State */
+.confirmation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.success-animation {
+  margin-bottom: 2rem;
+}
+
+.success-animation i {
+  font-size: 5rem;
+  color: #10b981;
+  animation: success-bounce 0.6s ease-out;
+}
+
+@keyframes success-bounce {
+  0% { transform: scale(0) rotate(0deg); }
+  50% { transform: scale(1.3) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+.confirmation-container h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #10b981;
+}
+
+.confirmation-details {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 400px;
+}
+
+.confirmation-details p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.scheduled-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fbbf24;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(251, 191, 36, 0.2);
+  border-radius: 8px;
+}
+
+.notification-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.redirect-message {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0;
+  animation: fade-pulse 2s infinite;
+}
+
+@keyframes fade-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0.4; }
+}
+
+/* Schedule Form */
+.schedule-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Vehicle Info Section */
+.vehicle-info-section {
+  margin-bottom: 2rem;
+}
+
+.vehicle-card-compact {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 1rem;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.vehicle-image-small {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.vehicle-details-compact {
+  flex: 1;
+}
+
+.vehicle-details-compact h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+}
+
+.vehicle-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.stat i {
+  color: #10b981;
+}
+
+/* Form Sections */
+.form-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 1.5rem;
+  color: #374151;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.form-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  color: #1f2937;
+}
+
+.form-section h3 i {
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+/* Date Input */
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.date-input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: white;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.date-input:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.date-input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Time Slots */
+.time-slots-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.time-slot {
+  background: #f8fafc;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.time-slot:hover:not(:disabled) {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateY(-2px);
+}
+
+.time-slot.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.time-slot.recommended {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.time-slot.recommended:hover {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.time-slot.recommended.selected {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.time-slot:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.slot-time {
+  font-size: 1rem;
   font-weight: 600;
 }
 
-.vehicle-details p {
-  margin: 0;
+.slot-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.slot-indicator i {
+  font-size: 0.6rem;
+}
+
+.time-slot.selected .slot-indicator {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Manual Time Section */
+.manual-time-section {
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 1rem 0;
   color: #6b7280;
   font-size: 0.9rem;
 }
 
-label {
-  font-weight: 600;
-  display: block;
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.divider span {
+  padding: 0 1rem;
+}
+
+.time-input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: white;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.time-input:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.time-input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* No Slots Message */
+.no-slots-message {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.no-slots-message i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #9ca3af;
+}
+
+.no-slots-message p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Notification Settings */
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.setting-row label {
+  font-weight: 500;
+  color: #374151;
+  min-width: 120px;
+}
+
+.form-select {
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 0.95rem;
+  min-width: 160px;
+  transition: all 0.3s ease;
+}
+
+.form-select:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.checkbox-setting {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  position: relative;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all 0.3s ease;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.setting-title {
+  font-weight: 500;
+  color: #374151;
+}
+
+.setting-description {
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Schedule Summary */
+.schedule-summary {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
   margin-top: 1rem;
 }
 
-input, select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  margin-top: 4px;
-}
-
-.summary {
-  margin-top: 1.5rem;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.summary h3 {
-  margin: 0 0 1rem 0;
-  color: #111827;
+.schedule-summary h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   font-size: 1.1rem;
   font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: #667eea;
 }
 
 .summary-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.75rem;
 }
 
-.summary-row {
+.summary-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  padding: 0.5rem 0;
 }
 
-.label {
+.summary-label {
   font-weight: 500;
+  color: #6b7280;
+}
+
+.summary-value {
+  font-weight: 600;
   color: #374151;
 }
 
-.value {
-  color: #111827;
-  font-weight: 500;
-}
-
-.total-row {
-  background: white;
-  padding: 8px;
-  border-radius: 6px;
-  margin-top: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.total {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #7c3aed;
-}
-
-.actions {
-  margin-top: 1.5rem;
+/* Field Errors */
+.field-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.actions .schedule {
-  flex: 1;
-  background-color: #7c3aed;
+.field-error::before {
+  content: '⚠';
+  font-size: 0.8rem;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+}
+
+/* Button Styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px;
 }
 
-.actions .draft {
-  flex: 1;
-  background-color: #f3f4f6;
-  border: none;
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  min-width: 200px;
+}
+
+/* Help Section */
+.help-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.help-section h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: white;
+}
+
+.help-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.help-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 10px;
+}
+
+.step-number {
+  background: rgba(255, 255, 255, 0.2);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.help-step span:last-child {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .schedule-unlock-container {
+    padding: 0.5rem;
+  }
+
+  .schedule-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .schedule-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .vehicle-card-compact {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .vehicle-stats {
+    justify-content: center;
+  }
+
+  .form-section {
+    padding: 1rem;
+  }
+
+  .time-slots-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .time-slot {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .setting-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .setting-row label {
+    min-width: auto;
+  }
+
+  .form-select {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .summary-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .help-steps {
+    gap: 0.5rem;
+  }
+
+  .help-step {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-unlock-container {
+    padding: 0.25rem;
+  }
+
+  .form-section {
+    border-radius: 12px;
+    margin: 0 -0.25rem;
+  }
+
+  .time-slots-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .time-slot {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .slot-time {
+    font-size: 0.9rem;
+  }
+
+  .slot-indicator {
+    font-size: 0.6rem;
+  }
+
+  .confirmation-details {
+    margin: 0 -0.5rem 2rem;
+    border-radius: 0;
+  }
+
+  .scheduled-time {
+    font-size: 1rem;
+  }
+
+  .btn-large {
+    width: 100%;
+    min-width: auto;
+  }
 }
