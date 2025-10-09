@@ -40,8 +40,8 @@ export class ReservationTimerHandler {
           return [];
         })
       )
-      .subscribe(timers => {
-        timers.forEach(timer => this.processTimer(timer));
+      .subscribe((timers: ReservationTimer[]) => {
+        timers.forEach((timer: ReservationTimer) => this.processTimer(timer));
       });
   }
 

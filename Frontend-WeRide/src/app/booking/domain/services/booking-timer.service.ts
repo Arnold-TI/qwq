@@ -8,6 +8,7 @@ export abstract class BookingTimerService {
   abstract resumeTimer(timerId: string): Observable<boolean>;
   abstract extendTimer(timerId: string, additionalMinutes: number): Observable<boolean>;
   abstract stopTimer(timerId: string): Observable<boolean>;
+  abstract getActiveTimers(): Observable<ReservationTimer[]>;
 
   // Monitoreo del timer
   abstract getTimerStatus(timerId: string): Observable<ReservationTimer>;
